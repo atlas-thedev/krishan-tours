@@ -15,6 +15,7 @@ export const siteConfig = {
     postalCode: "12500",
     country: "Sri Lanka",
   },
+  geo: { latitude: 6.7132, longitude: 79.9074 },
   social: {
     tripadvisor: "https://www.tripadvisor.com/Search?q=Krishan+Tours+Sri+Lanka+Panadura",
     facebook: "https://www.facebook.com/krishantourssrilanka",

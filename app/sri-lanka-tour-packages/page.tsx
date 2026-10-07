@@ -17,12 +17,13 @@ import { SectionHeading } from "@/components/SectionHeading";
 import { siteConfig, whatsappUrl } from "@/lib/site";
 import { getI18n } from "@/lib/i18n/server";
 import { localizedMetadata } from "@/lib/i18n/metadata";
+import { JsonLd } from "@/components/JsonLd";
 
 export const generateMetadata = (): Promise<Metadata> =>
   localizedMetadata({
-    title: "Sri Lanka Tour Packages",
+    title: "Sri Lanka Tour Packages: 5 to 14 Days",
     description:
-      "Curated Sri Lanka tour packages from 5 to 14 days. Transparent pricing, private air-conditioned vehicles, boutique stays, safari jeeps, and scenic train tickets with Krishan Tours Sri Lanka.",
+      "Private Sri Lanka tour packages from 5 to 14 days with AC vehicle and driver-guide, handpicked hotels, safari jeeps and Ella train tickets. Fully customisable.",
     path: "/sri-lanka-tour-packages",
     image: "/images/ella-train.webp",
   });
@@ -116,10 +117,10 @@ export default async function TourPackagesPage() {
         "@type": "FAQPage",
         mainEntity: packageFaqs.map((faq) => ({
           "@type": "Question",
-          name: faq.q,
+          name: t(faq.q),
           acceptedAnswer: {
             "@type": "Answer",
-            text: faq.a,
+            text: t(faq.a),
           },
         })),
       },
@@ -130,7 +131,7 @@ export default async function TourPackagesPage() {
             "@type": "ListItem",
             position: 1,
             name: "Home",
-            item: siteConfig.url,
+            item: `${siteConfig.url}${prefix || "/"}`,
           },
           {
             "@type": "ListItem",
@@ -324,10 +325,7 @@ export default async function TourPackagesPage() {
         </div>
       </section>
 
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-      />
+      <JsonLd data={schema} />
     </>
   );
 }

@@ -19,6 +19,7 @@ import { commonFaqs } from "@/data/faqs";
 import { SectionHeading } from "@/components/SectionHeading";
 import { TourCard } from "@/components/TourCard";
 import { siteConfig } from "@/lib/site";
+import { JsonLd, breadcrumbSchema, organizationId } from "@/components/JsonLd";
 import { getI18n } from "@/lib/i18n/server";
 import { localizedMetadata } from "@/lib/i18n/metadata";
 
@@ -34,7 +35,7 @@ export async function generateMetadata({
   const tour = getTour(slug);
   if (!tour) return {};
   const {t}=await getI18n();
-  return localizedMetadata({title:`${t(tour.name)} — ${tour.duration} ${t("Day Private Tour")}`,description:t(tour.summary),path:`/tours/${tour.slug}`,image:tour.image});
+  return localizedMetadata({title:t("{name}: {days}-Day Sri Lanka Tour",{name:t(tour.name),days:tour.duration}),description:`${t(tour.summary)} ${t(tour.intro)}`,path:`/tours/${tour.slug}`,image:tour.image});
 }
 
 export default async function TourDetailPage({
@@ -64,7 +65,11 @@ export default async function TourDetailPage({
       name: `${t(d.place)}: ${t(d.title)}`,
     })),
     url: `${siteConfig.url}${prefix}/tours/${tour.slug}`,
+    image: `${siteConfig.url}${tour.image.replace(/\.webp$/, ".jpg")}`,
+    provider: { "@id": organizationId },
+    inLanguage: locale,
   };
+  const breadcrumbs = breadcrumbSchema([[t("Tours"), "/tours"], [t(tour.name), `/tours/${tour.slug}`]], locale, t("Home"));
   return (
     <>
       <PageHero
@@ -238,10 +243,7 @@ export default async function TourDetailPage({
           </div>
         </div>
       </section>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-      />
+      <JsonLd data={[schema, breadcrumbs]} />
     </>
   );
 }

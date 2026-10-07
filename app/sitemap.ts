@@ -3,8 +3,8 @@ import { destinations } from "@/data/destinations";
 import { tours } from "@/data/tours";
 import { experiences } from "@/data/experiences";
 import { stories } from "@/data/stories";
-import { siteConfig } from "@/lib/site";
-import { locales, localizeHref } from "@/lib/i18n/config";
+import { locales } from "@/lib/i18n/config";
+import { absoluteUrl, languageAlternates } from "@/lib/i18n/metadata";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const targetRoutes = [
@@ -26,12 +26,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/about",
     "/stories",
     "/contact",
+    "/privacy",
+    "/terms",
   ];
   const routes = [
     ...staticRoutes.map((route) => ({
       route: route || "/",
       changeFrequency: route === "" ? ("weekly" as const) : ("monthly" as const),
-      priority: route === "" ? 1 : 0.8,
+      priority: route === "" ? 1 : route === "/privacy" || route === "/terms" ? 0.2 : 0.8,
     })),
     ...targetRoutes.map((route) => ({
       route,
@@ -59,5 +61,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.6,
     })),
   ];
-  return routes.flatMap(item=>locales.map(locale=>({url:`${siteConfig.url}${localizeHref(item.route,locale)}`,changeFrequency:item.changeFrequency,priority:item.priority,alternates:{languages:Object.fromEntries(locales.map(language=>[language,`${siteConfig.url}${localizeHref(item.route,language)}`]))}})));
+  const lastModified = process.env.SITEMAP_LASTMOD ? new Date(process.env.SITEMAP_LASTMOD) : new Date(BUILD_TIME);
+  return routes.flatMap((item) =>
+    locales.map((locale) => ({
+      url: absoluteUrl(item.route, locale),
+      lastModified,
+      changeFrequency: item.changeFrequency,
+      priority: item.priority,
+      alternates: { languages: languageAlternates(item.route) },
+    })),
+  );
 }
+
+// Evaluated once when the sitemap module is built, so lastmod reflects the deploy, not every request.
+const BUILD_TIME = Date.now();

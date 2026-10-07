@@ -13,12 +13,13 @@ import { SectionHeading } from "@/components/SectionHeading";
 import { siteConfig, whatsappUrl } from "@/lib/site";
 import { getI18n } from "@/lib/i18n/server";
 import { localizedMetadata } from "@/lib/i18n/metadata";
+import { JsonLd, organizationId } from "@/components/JsonLd";
 
 export const generateMetadata = (): Promise<Metadata> =>
   localizedMetadata({
-    title: "Airport Transfer Sri Lanka | Bandaranaike (CMB) Private Taxi",
+    title: "Sri Lanka Airport Taxi & CMB Transfers 24/7",
     description:
-      "Reliable 24/7 private Colombo Airport (CMB) transfers to Panadura, Colombo, Bentota, Galle, Kandy, and Sigiriya. Fixed rates, flight monitoring, and highway tolls included with Krishan Tours Sri Lanka.",
+      "24/7 private Colombo Airport (CMB) taxi and transfers to Colombo, Negombo, Bentota, Galle, Kandy and Sigiriya. Fixed prices, flight tracking and tolls included.",
     path: "/airport-transfer-sri-lanka",
     image: "/images/coast.webp",
   });
@@ -72,20 +73,7 @@ export default async function AirportTransferPage() {
         "@type": "Service",
         name: "Colombo Airport (CMB) Private Transfers",
         serviceType: "Airport Taxi & Chauffeur Transfer",
-        provider: {
-          "@type": "TravelAgency",
-          name: "Krishan Tours Sri Lanka",
-          url: siteConfig.url,
-          telephone: siteConfig.phone,
-          address: {
-            "@type": "PostalAddress",
-            streetAddress: `${siteConfig.address.street}, ${siteConfig.address.locality}`,
-            addressLocality: siteConfig.address.city,
-            addressRegion: siteConfig.address.region,
-            postalCode: siteConfig.address.postalCode,
-            addressCountry: "LK",
-          },
-        },
+        provider: { "@id": organizationId },
         areaServed: {
           "@type": "Country",
           name: "Sri Lanka",
@@ -97,10 +85,10 @@ export default async function AirportTransferPage() {
         "@type": "FAQPage",
         mainEntity: transferFaqs.map((faq) => ({
           "@type": "Question",
-          name: faq.q,
+          name: t(faq.q),
           acceptedAnswer: {
             "@type": "Answer",
-            text: faq.a,
+            text: t(faq.a),
           },
         })),
       },
@@ -111,7 +99,7 @@ export default async function AirportTransferPage() {
             "@type": "ListItem",
             position: 1,
             name: "Home",
-            item: siteConfig.url,
+            item: `${siteConfig.url}${prefix || "/"}`,
           },
           {
             "@type": "ListItem",
@@ -301,10 +289,7 @@ export default async function AirportTransferPage() {
         </div>
       </section>
 
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-      />
+      <JsonLd data={schema} />
     </>
   );
 }

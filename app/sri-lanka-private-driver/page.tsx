@@ -16,12 +16,13 @@ import { SectionHeading } from "@/components/SectionHeading";
 import { siteConfig, whatsappUrl } from "@/lib/site";
 import { getI18n } from "@/lib/i18n/server";
 import { localizedMetadata } from "@/lib/i18n/metadata";
+import { JsonLd, organizationId } from "@/components/JsonLd";
 
 export const generateMetadata = (): Promise<Metadata> =>
   localizedMetadata({
-    title: "Sri Lanka Private Driver",
+    title: "Private Driver in Sri Lanka from $55/Day",
     description:
-      "Hire a trusted, licensed English-speaking private driver in Sri Lanka. Transparent daily rates ($55–$85/day), AC sedan or KDH van, fuel, tolls, and driver lodging included. Panadura-based Krishan Tours Sri Lanka.",
+      "Hire a licensed, English-speaking private driver in Sri Lanka from $55/day. AC car or van, fuel, tolls and driver lodging included. No shopping commissions.",
     path: "/sri-lanka-private-driver",
     image: "/images/tea-estate.webp",
   });
@@ -64,20 +65,7 @@ export default async function PrivateDriverPage() {
         "@type": "Service",
         name: "Sri Lanka Private Driver & Chauffeur Guide",
         serviceType: "Private Transportation & Guided Tours",
-        provider: {
-          "@type": "TravelAgency",
-          name: "Krishan Tours Sri Lanka",
-          url: siteConfig.url,
-          telephone: siteConfig.phone,
-          address: {
-            "@type": "PostalAddress",
-            streetAddress: `${siteConfig.address.street}, ${siteConfig.address.locality}`,
-            addressLocality: siteConfig.address.city,
-            addressRegion: siteConfig.address.region,
-            postalCode: siteConfig.address.postalCode,
-            addressCountry: "LK",
-          },
-        },
+        provider: { "@id": organizationId },
         areaServed: {
           "@type": "Country",
           name: "Sri Lanka",
@@ -96,10 +84,10 @@ export default async function PrivateDriverPage() {
         "@type": "FAQPage",
         mainEntity: driverFaqs.map((faq) => ({
           "@type": "Question",
-          name: faq.q,
+          name: t(faq.q),
           acceptedAnswer: {
             "@type": "Answer",
-            text: faq.a,
+            text: t(faq.a),
           },
         })),
       },
@@ -110,7 +98,7 @@ export default async function PrivateDriverPage() {
             "@type": "ListItem",
             position: 1,
             name: "Home",
-            item: siteConfig.url,
+            item: `${siteConfig.url}${prefix || "/"}`,
           },
           {
             "@type": "ListItem",
@@ -492,10 +480,7 @@ export default async function PrivateDriverPage() {
         </div>
       </section>
 
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-      />
+      <JsonLd data={schema} />
     </>
   );
 }

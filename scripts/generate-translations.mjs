@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import ts from "typescript";
+import { postProcess } from "./i18n-postprocess.mjs";
 
 const root = process.cwd();
 const sourceFiles = [];
@@ -15,6 +16,8 @@ await walk(path.join(root, "app"));
 await walk(path.join(root, "components"));
 
 const sources = new Set();
+// Module-level content arrays whose values are rendered through t().
+const translatableVariables = ["nav", "regions", "tourTypes", "steps", "optionSets", "values", "sections", "homeFaqs", "driverFaqs", "privateTourFaqs", "packageFaqs", "packagesList", "transferFaqs", "transferRates", "tourFaqs", "itineraryDays", "rows", "themes"];
 const addLiterals = (node) => {
   if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) sources.add(node.text);
   ts.forEachChild(node, addLiterals);
@@ -25,7 +28,9 @@ for (const file of sourceFiles) {
   const source = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true, file.endsWith("x") ? ts.ScriptKind.TSX : ts.ScriptKind.TS);
   const visit = (node) => {
     if (ts.isCallExpression(node) && ts.isIdentifier(node.expression) && ["t", "localizedMetadata"].includes(node.expression.text) && node.arguments[0]) addLiterals(node.arguments[0]);
-    if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && ["nav", "regions", "tourTypes", "steps", "optionSets", "values", "sections", "homeFaqs"].includes(node.name.text) && node.initializer) addLiterals(node.initializer);
+    if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && translatableVariables.includes(node.name.text) && node.initializer) addLiterals(node.initializer);
+    // Inline content arrays rendered with `[...].map(item => t(item.x))`.
+    if (ts.isPropertyAccessExpression(node) && node.name.text === "map" && ts.isArrayLiteralExpression(node.expression)) addLiterals(node.expression);
     ts.forEachChild(node, visit);
   };
   visit(source);
@@ -54,7 +59,7 @@ const targets = ["ar", "cs", "fr", "pl", "de"];
 
 function protect(text) {
   const tokens = [];
-  const protectedText = text.replace(/Krishan Tours|KrishanTours|Sri Lanka|WhatsApp|Google Analytics|Google|Cloudflare|SMTP|SQLite|IP address|JavaScript|Facebook|Instagram/g, (token) => {
+  const protectedText = text.replace(/Krishan Tours|KrishanTours|Sri Lanka(?!n)|Sigiriya|Pidurangala|Arugam Bay|Nuwara Eliya|Udawalawe|WhatsApp|Google Analytics|Google|Cloudflare|SMTP|SQLite|IP address|JavaScript|Facebook|Instagram/g, (token) => {
     tokens.push(token);
     return ` __KT${tokens.length - 1}__ `;
   }).replace(/\{[^}]+\}/g, (token) => {
@@ -102,7 +107,7 @@ for (const target of targets) {
       batch.push(missing.shift()); length += added;
     }
     const translated = await translateBatch(batch, target);
-    batch.forEach((source, index) => { output[source] = translated[index]; });
+    batch.forEach((source, index) => { output[source] = postProcess(target, translated[index]); });
     await new Promise((resolve) => setTimeout(resolve, 120));
   }
   const sorted = Object.fromEntries(Object.entries(output).sort(([a],[b]) => a.localeCompare(b)));

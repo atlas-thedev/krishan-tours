@@ -25,11 +25,12 @@ import { localizedMetadata } from "@/lib/i18n/metadata";
 
 export const generateMetadata = (): Promise<Metadata> =>
   localizedMetadata({
-    title: "Krishan Tours Sri Lanka | Private Driver & Custom Sri Lanka Tours",
+    title: "Sri Lanka Private Driver & Tailor-Made Tours | Krishan Tours",
     description:
-      "Krishan Tours Sri Lanka is a Panadura-based private tour and driver service offering custom trips throughout Sri Lanka. Personal driver-guides, tailor-made itineraries, and reliable airport transfers.",
+      "Private driver-guides, tailor-made Sri Lanka tours and 24/7 airport transfers from Panadura. Fixed daily rates, no shopping commissions. Plan on WhatsApp.",
     path: "/",
     image: "/images/og-image.jpg",
+    absoluteTitle: true,
   });
 
 const homeFaqs = [

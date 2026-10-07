@@ -5,7 +5,7 @@ const locales = [
   ["en", "/", "ltr"], ["ar", "/ar", "rtl"], ["cs", "/cs", "ltr"],
   ["fr", "/fr", "ltr"], ["pl", "/pl", "ltr"], ["de", "/de", "ltr"],
 ];
-const browser = await chromium.launch({ headless: true });
+const browser = await chromium.launch({ headless: true, executablePath: process.env.CHROME || undefined });
 const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
 const failures = [];
 

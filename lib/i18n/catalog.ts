@@ -9,8 +9,10 @@ import cs from "./generated/cs.json";
 import fr from "./generated/fr.json";
 import pl from "./generated/pl.json";
 import de from "./generated/de.json";
+import { seoOverrides } from "./seo-overrides";
 
-const catalogs: Record<Exclude<Locale, "en">, Catalog> = { ar, cs, fr, pl, de };
+const merge = (locale: Exclude<Locale, "en">, generated: Catalog): Catalog => ({ ...generated, ...seoOverrides[locale] });
+const catalogs: Record<Exclude<Locale, "en">, Catalog> = { ar: merge("ar", ar), cs: merge("cs", cs), fr: merge("fr", fr), pl: merge("pl", pl), de: merge("de", de) };
 
 export function getCatalog(locale: Locale): Catalog {
   return locale === "en" ? {} : catalogs[locale];

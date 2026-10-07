@@ -14,12 +14,13 @@ import { SectionHeading } from "@/components/SectionHeading";
 import { siteConfig, whatsappUrl } from "@/lib/site";
 import { getI18n } from "@/lib/i18n/server";
 import { localizedMetadata } from "@/lib/i18n/metadata";
+import { JsonLd, organizationId } from "@/components/JsonLd";
 
 export const generateMetadata = (): Promise<Metadata> =>
   localizedMetadata({
-    title: "Sri Lanka 14-Day Tour | 2-Week Grand Island Journey",
+    title: "Sri Lanka 14-Day Tour: 2-Week Itinerary",
     description:
-      "The definitive 14-day Sri Lanka private tour itinerary. Ancient cities, Sigiriya Lion Rock, Kandy, misted tea country, Ella train, Yala safari, and Galle coast with Krishan Tours Sri Lanka.",
+      "A 14-day Sri Lanka tour with a private driver: ancient cities, Sigiriya, Kandy, tea country, the Ella train, Yala safari and beach days on the south coast.",
     path: "/sri-lanka-14-day-tour",
     image: "/images/nine-arches.webp",
   });
@@ -188,12 +189,7 @@ export default async function SriLanka14DayTourPage() {
         name: "14-Day Ultimate Island Journey Private Tour",
         description:
           "The definitive 2-week grand private tour of Sri Lanka covering ancient capitals, Sigiriya, Kandy, Nuwara Eliya, Ella train, Yala safari, and Galle coast.",
-        provider: {
-          "@type": "TravelAgency",
-          name: "Krishan Tours Sri Lanka",
-          url: siteConfig.url,
-          telephone: siteConfig.phone,
-        },
+        provider: { "@id": organizationId },
         itinerary: itineraryDays.map((d) => ({
           "@type": "TouristAttraction",
           name: `Day ${d.day}: ${d.title} (${d.location})`,
@@ -209,10 +205,10 @@ export default async function SriLanka14DayTourPage() {
         "@type": "FAQPage",
         mainEntity: tourFaqs.map((faq) => ({
           "@type": "Question",
-          name: faq.q,
+          name: t(faq.q),
           acceptedAnswer: {
             "@type": "Answer",
-            text: faq.a,
+            text: t(faq.a),
           },
         })),
       },
@@ -223,7 +219,7 @@ export default async function SriLanka14DayTourPage() {
             "@type": "ListItem",
             position: 1,
             name: "Home",
-            item: siteConfig.url,
+            item: `${siteConfig.url}${prefix || "/"}`,
           },
           {
             "@type": "ListItem",
@@ -446,10 +442,7 @@ export default async function SriLanka14DayTourPage() {
         </div>
       </section>
 
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-      />
+      <JsonLd data={schema} />
     </>
   );
 }

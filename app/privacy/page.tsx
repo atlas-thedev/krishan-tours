@@ -3,7 +3,7 @@ import { getI18n } from "@/lib/i18n/server";
 import { siteConfig } from "@/lib/site";
 import { localizedMetadata } from "@/lib/i18n/metadata";
 
-export const generateMetadata = (): Promise<Metadata> => localizedMetadata({ title: "Privacy Policy", path: "/privacy" });
+export const generateMetadata = (): Promise<Metadata> => localizedMetadata({ title: "Privacy Policy", description: "How Krishan Tours Sri Lanka collects, uses and protects the personal information you share when planning a trip.", path: "/privacy" });
 
 export default async function PrivacyPage() {
   const { t } = await getI18n();

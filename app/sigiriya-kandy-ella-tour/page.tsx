@@ -14,12 +14,13 @@ import { SectionHeading } from "@/components/SectionHeading";
 import { siteConfig, whatsappUrl } from "@/lib/site";
 import { getI18n } from "@/lib/i18n/server";
 import { localizedMetadata } from "@/lib/i18n/metadata";
+import { JsonLd, organizationId } from "@/components/JsonLd";
 
 export const generateMetadata = (): Promise<Metadata> =>
   localizedMetadata({
-    title: "Sigiriya Kandy Ella Tour | 5-Day Golden Route",
+    title: "Sigiriya, Kandy & Ella Tour: 5-Day Itinerary",
     description:
-      "Experience Sri Lanka's iconic 5-day Golden Route: Sigiriya Lion Rock, Dambulla Cave Temple, Kandy Temple of the Tooth, and the scenic mountain train to Ella. Private chauffeur-guide with Krishan Tours Sri Lanka.",
+      "5-day private Sigiriya, Kandy and Ella tour: Lion Rock, Dambulla cave temple, Temple of the Tooth and the famous hill-country train, with your own driver-guide.",
     path: "/sigiriya-kandy-ella-tour",
     image: "/images/nine-arches.webp",
   });
@@ -107,12 +108,7 @@ export default async function SigiriyaKandyEllaPage() {
         name: "5-Day Sigiriya, Kandy & Ella Private Tour",
         description:
           "Sri Lanka's classic 5-day Golden Route covering Sigiriya Lion Rock, Dambulla Cave Temple, Kandy Temple of the Tooth, and the scenic mountain train to Ella.",
-        provider: {
-          "@type": "TravelAgency",
-          name: "Krishan Tours Sri Lanka",
-          url: siteConfig.url,
-          telephone: siteConfig.phone,
-        },
+        provider: { "@id": organizationId },
         itinerary: itineraryDays.map((d) => ({
           "@type": "TouristAttraction",
           name: `Day ${d.day}: ${d.title} (${d.location})`,
@@ -128,10 +124,10 @@ export default async function SigiriyaKandyEllaPage() {
         "@type": "FAQPage",
         mainEntity: tourFaqs.map((faq) => ({
           "@type": "Question",
-          name: faq.q,
+          name: t(faq.q),
           acceptedAnswer: {
             "@type": "Answer",
-            text: faq.a,
+            text: t(faq.a),
           },
         })),
       },
@@ -142,7 +138,7 @@ export default async function SigiriyaKandyEllaPage() {
             "@type": "ListItem",
             position: 1,
             name: "Home",
-            item: siteConfig.url,
+            item: `${siteConfig.url}${prefix || "/"}`,
           },
           {
             "@type": "ListItem",
@@ -363,10 +359,7 @@ export default async function SigiriyaKandyEllaPage() {
         </div>
       </section>
 
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-      />
+      <JsonLd data={schema} />
     </>
   );
 }
