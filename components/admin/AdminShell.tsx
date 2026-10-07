@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { BadgeDollarSign, ExternalLink, Inbox, Map, Settings } from "lucide-react";
+import { BadgeDollarSign, Calculator, ExternalLink, Inbox, Map, Settings } from "lucide-react";
 import { LogoutButton } from "@/components/admin/LogoutButton";
 
 const tabs = [
   { key: "inquiries", href: "/admin", label: "Inquiries", icon: Inbox },
   { key: "prices", href: "/admin/prices", label: "Prices", icon: BadgeDollarSign },
+  { key: "calculator", href: "/admin/calculator", label: "Calculator", icon: Calculator },
   { key: "trips", href: "/admin/trips", label: "Trips", icon: Map },
   { key: "settings", href: "/admin/settings", label: "Settings", icon: Settings },
 ] as const;
@@ -32,8 +33,8 @@ export function AdminShell({ active, title, subtitle, badge, children }: { activ
       <div className="mt-6 md:mt-8">{children}</div>
     </div>
 
-    <nav aria-label="Admin sections" className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-ink/10 bg-paper/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
-      {tabs.map(({ key, href, label, icon: Icon }) => <Link key={key} href={href} aria-current={active === key ? "page" : undefined} className={`relative flex min-h-16 flex-col items-center justify-center gap-1 text-[.62rem] font-bold uppercase tracking-[.06em] ${active === key ? "text-jungle" : "text-ink/45"}`}>
+    <nav aria-label="Admin sections" className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-ink/10 bg-paper/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
+      {tabs.map(({ key, href, label, icon: Icon }) => <Link key={key} href={href} aria-current={active === key ? "page" : undefined} className={`relative flex min-h-16 flex-col items-center justify-center gap-1 text-[.58rem] font-bold uppercase tracking-[.03em] ${active === key ? "text-jungle" : "text-ink/45"}`}>
         {active === key && <span className="absolute top-0 h-0.5 w-10 rounded-full bg-cinnamon"/>}
         <Icon size={20}/>{label}
         {key === "inquiries" && badge ? <span className="absolute right-[calc(50%-1.4rem)] top-2 rounded-full bg-cinnamon px-1.5 text-[.55rem] leading-4 text-white">{badge}</span> : null}

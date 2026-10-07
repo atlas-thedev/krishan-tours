@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import nodemailer from "nodemailer";
+import { mailConfigured, sendMail } from "@/lib/mailer";
 import { NextRequest, NextResponse } from "next/server";
 import { saveInquiry } from "@/lib/inquiries-db";
 import { clientIp, createRateLimiter, readJsonObject, RequestBodyError } from "@/lib/request-security";
@@ -76,20 +76,9 @@ export async function POST(request: NextRequest) {
   ].filter(([, value]) => value);
 
   let delivered = false;
-  if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
-    const port = Number(process.env.SMTP_PORT || 587);
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port,
-      secure: port === 465,
-      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-      connectionTimeout: 10_000,
-      greetingTimeout: 10_000,
-      socketTimeout: 15_000,
-    });
+  if (mailConfigured()) {
     try {
-      await transporter.sendMail({
-        from: process.env.SMTP_FROM || `KrishanTours Website <${process.env.SMTP_USER}>`,
+      await sendMail({
         to: destinationEmail,
         replyTo: inquiry.email,
         subject: `${type === "planner" ? "Trip plan" : "Website inquiry"} from ${inquiry.name}`,
