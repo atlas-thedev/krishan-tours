@@ -35,9 +35,9 @@ export function InquiryCard({ inquiry, open = false }: { inquiry: InquiryRecord;
 
     <div className="border-t border-ink/10 p-4 md:p-5">
       <div className="grid grid-cols-3 gap-2">
-        {wa ? <a href={wa} target="_blank" rel="noreferrer" className="flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#1f7a4d] text-xs font-bold text-white"><MessageCircle size={16}/>WhatsApp</a> : <span className="flex min-h-12 items-center justify-center rounded-xl bg-ink/5 text-xs text-ink/35">No WhatsApp</span>}
-        {inquiry.phone ? <a href={`tel:${inquiry.phone}`} className="flex min-h-12 items-center justify-center gap-2 rounded-xl border border-ink/15 text-xs font-bold text-jungle"><Phone size={16}/>Call</a> : <span className="flex min-h-12 items-center justify-center rounded-xl bg-ink/5 text-xs text-ink/35">No phone</span>}
-        <a href={`mailto:${inquiry.email}?subject=${encodeURIComponent("Your Sri Lanka trip – Krishan Tours")}`} className="flex min-h-12 items-center justify-center gap-2 rounded-xl border border-ink/15 text-xs font-bold text-jungle"><Mail size={16}/>Email</a>
+        {wa ? <a href={wa} target="_blank" rel="noreferrer" className="flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#1f7a4d] text-xs font-bold !text-white"><MessageCircle size={16}/>WhatsApp</a> : <span className="flex min-h-12 items-center justify-center rounded-xl bg-ink/5 text-xs !text-ink/35">No WhatsApp</span>}
+        {inquiry.phone ? <a href={`tel:${inquiry.phone}`} className="flex min-h-12 items-center justify-center gap-2 rounded-xl border border-ink/15 text-xs font-bold !text-jungle"><Phone size={16}/>Call</a> : <span className="flex min-h-12 items-center justify-center rounded-xl bg-ink/5 text-xs !text-ink/35">No phone</span>}
+        <a href={`mailto:${inquiry.email}?subject=${encodeURIComponent("Your Sri Lanka trip – Krishan Tours")}`} className="flex min-h-12 items-center justify-center gap-2 rounded-xl border border-ink/15 text-xs font-bold !text-jungle"><Mail size={16}/>Email</a>
       </div>
 
       <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">

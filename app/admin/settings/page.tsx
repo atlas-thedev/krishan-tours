@@ -21,7 +21,7 @@ export default async function AdminSettingsPage() {
   if (!(await isAdmin())) redirect("/admin/login");
   return <AdminShell active="settings" title="Settings" subtitle="Your listings, growth shortcuts and account security." badge={inquiryCounts().new}>
     <div className="grid gap-3 sm:grid-cols-2">
-      {links.map((link) => <a key={link.label} href={link.href} target="_blank" rel="noreferrer" className="flex min-h-20 items-center justify-between gap-3 rounded-2xl border border-ink/10 bg-white p-4 shadow-[0_6px_24px_rgba(23,56,43,.05)] hover:border-cinnamon"><span><span className="block text-sm font-semibold text-jungle">{link.label}</span><span className="text-xs text-ink/50">{link.note}</span></span><ExternalLink size={16} className="shrink-0 text-ink/40"/></a>)}
+      {links.map((link) => <a key={link.label} href={link.href} target="_blank" rel="noreferrer" className="flex min-h-20 items-center justify-between gap-3 rounded-2xl border border-ink/10 bg-white p-4 shadow-[0_6px_24px_rgba(23,56,43,.05)] hover:border-cinnamon"><span><span className="block text-sm font-semibold !text-jungle">{link.label}</span><span className="text-xs !text-ink/50">{link.note}</span></span><ExternalLink size={16} className="shrink-0 !text-ink/40"/></a>)}
     </div>
     <PasswordChanger />
   </AdminShell>;

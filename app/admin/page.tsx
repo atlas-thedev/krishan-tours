@@ -40,7 +40,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     <nav aria-label="Filter inquiries" className="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] md:mx-0 md:px-0">
       {(["all", ...validStatuses] as const).map((item) => {
         const active = (!status && item === "all") || status === item;
-        return <Link key={item} href={href(item)} className={`flex min-h-10 shrink-0 items-center gap-2 rounded-full border px-4 text-xs font-bold capitalize ${active ? "border-jungle bg-jungle !text-white" : "border-ink/15 bg-white !text-ink/65"}`}>{item}<span className={`tabular-nums ${active ? "text-white/70" : "text-ink/40"}`}>{counts[item]}</span></Link>;
+        return <Link key={item} href={href(item)} className={`flex min-h-10 shrink-0 items-center gap-2 rounded-full border px-4 text-xs font-bold capitalize ${active ? "border-jungle bg-jungle !text-white" : "border-ink/15 bg-white !text-ink/65"}`}>{item}<span className={`tabular-nums ${active ? "!text-white/70" : "!text-ink/40"}`}>{counts[item]}</span></Link>;
       })}
     </nav>
 
