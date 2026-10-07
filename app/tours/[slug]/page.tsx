@@ -20,6 +20,8 @@ import { SectionHeading } from "@/components/SectionHeading";
 import { TourCard } from "@/components/TourCard";
 import { siteConfig } from "@/lib/site";
 import { JsonLd, breadcrumbSchema, organizationId } from "@/components/JsonLd";
+import { getTripSettings } from "@/lib/content-db";
+import { money } from "@/lib/money";
 import { getI18n } from "@/lib/i18n/server";
 import { localizedMetadata } from "@/lib/i18n/metadata";
 
@@ -47,6 +49,7 @@ export default async function TourDetailPage({
   const { slug } = await params;
   const tour = getTour(slug);
   if (!tour) notFound();
+  const fromPrice = getTripSettings()[tour.slug]?.fromPrice;
   const similar = tours
     .filter(
       (t) =>
@@ -67,6 +70,7 @@ export default async function TourDetailPage({
     url: `${siteConfig.url}${prefix}/tours/${tour.slug}`,
     image: `${siteConfig.url}${tour.image.replace(/\.webp$/, ".jpg")}`,
     provider: { "@id": organizationId },
+    ...(fromPrice ? { offers: { "@type": "Offer", price: fromPrice, priceCurrency: "USD", availability: "https://schema.org/InStock" } } : {}),
     inLanguage: locale,
   };
   const breadcrumbs = breadcrumbSchema([[t("Tours"), "/tours"], [t(tour.name), `/tours/${tour.slug}`]], locale, t("Home"));
@@ -90,9 +94,10 @@ export default async function TourDetailPage({
               <MapPin size={15} />
               {tour.route.length} {t("stops")}
             </span>
+            {fromPrice ? <span className="font-bold text-jungle">{t("From {price} / person", { price: money(fromPrice) })}</span> : null}
           </div>
           <p className="truncate text-xs sm:hidden">
-            {tour.duration} {t("days")} · {t("Private journey")}
+            {tour.duration} {t("days")} · {fromPrice ? t("From {price} / person", { price: money(fromPrice) }) : t("Private journey")}
           </p>
           <Link
             href={`/plan-your-trip?tour=${tour.slug}`}

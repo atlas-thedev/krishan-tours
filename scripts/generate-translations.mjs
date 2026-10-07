@@ -53,13 +53,19 @@ for (const name of ["destinations.ts", "experiences.ts", "faqs.ts", "stories.ts"
 for (const value of ["Sri Lanka", "Choose language", "Skip to content", "Travel month", "Your note", "Sending", "Send inquiry", "Website"]) sources.add(value);
 for (const value of ["Too many requests. Please try again shortly.", "Request is too large.", "Invalid request.", "Please provide a valid name and email address.", "We could not save your request. Please contact us on WhatsApp."]) sources.add(value);
 
-const ignored = /^(en|ar|cs|fr|pl|de|idle|sending|sent|error|planner|contact|text|email|tel|month|yes|no|granted|denied|current-password|new-password)$/;
+const ignored = /^(en|ar|cs|fr|pl|de|es|it|nl|ru|zh|ja|idle|sending|sent|error|planner|contact|text|email|tel|month|yes|no|granted|denied|current-password|new-password)$/;
 const list = [...sources].filter((value) => value.trim() && !value.startsWith("/") && !ignored.test(value) && !value.includes("className") && !/^https?:/.test(value)).sort((a,b) => a.localeCompare(b));
-const targets = ["ar", "cs", "fr", "pl", "de"];
+const targets = (process.env.LOCALES || "ar,cs,fr,pl,de,es,it,nl,ru,zh,ja").split(",");
 
-function protect(text) {
+// Non-Latin scripts (Russian, Chinese, Japanese) get native place names; the
+// brand and product names stay in Latin script everywhere.
+const nativeScript = new Set(["ru", "zh", "ja"]);
+function protect(text, target) {
   const tokens = [];
-  const protectedText = text.replace(/Krishan Tours|KrishanTours|Sri Lanka(?!n)|Sigiriya|Pidurangala|Arugam Bay|Nuwara Eliya|Udawalawe|WhatsApp|Google Analytics|Google|Cloudflare|SMTP|SQLite|IP address|JavaScript|Facebook|Instagram/g, (token) => {
+  const pattern = nativeScript.has(target)
+    ? /Krishan Tours|KrishanTours|WhatsApp|Google Analytics|Google|Cloudflare|SMTP|SQLite|JavaScript|Facebook|Instagram/g
+    : /Krishan Tours|KrishanTours|Sri Lanka(?!n)|Sigiriya|Pidurangala|Arugam Bay|Nuwara Eliya|Udawalawe|WhatsApp|Google Analytics|Google|Cloudflare|SMTP|SQLite|IP address|JavaScript|Facebook|Instagram/g;
+  const protectedText = text.replace(pattern, (token) => {
     tokens.push(token);
     return ` __KT${tokens.length - 1}__ `;
   }).replace(/\{[^}]+\}/g, (token) => {
@@ -73,7 +79,7 @@ function protect(text) {
 }
 
 async function translateBatch(texts, target) {
-  const protectedItems = texts.map(protect);
+  const protectedItems = texts.map((text) => protect(text, target));
   const url = new URL("https://clients5.google.com/translate_a/t");
   url.searchParams.set("client", "dict-chrome-ex"); url.searchParams.set("sl", "en"); url.searchParams.set("tl", target);
   for (const item of protectedItems) url.searchParams.append("q", item.protectedText);

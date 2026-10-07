@@ -16,13 +16,16 @@ import { SectionHeading } from "@/components/SectionHeading";
 import { siteConfig, whatsappUrl } from "@/lib/site";
 import { getI18n } from "@/lib/i18n/server";
 import { localizedMetadata } from "@/lib/i18n/metadata";
+import { getPrices } from "@/lib/content-db";
+import { localizeFaqs, money, priceRange, priceValues } from "@/lib/money";
 import { JsonLd, organizationId } from "@/components/JsonLd";
 
 export const generateMetadata = (): Promise<Metadata> =>
   localizedMetadata({
-    title: "Private Driver in Sri Lanka from $55/Day",
+    title: "Private Driver in Sri Lanka from {price}/Day",
     description:
-      "Hire a licensed, English-speaking private driver in Sri Lanka from $55/day. AC car or van, fuel, tolls and driver lodging included. No shopping commissions.",
+      "Hire a licensed, English-speaking private driver in Sri Lanka from {price}/day. AC car or van, fuel, tolls and driver lodging included. No shopping commissions.",
+    values: { price: money(getPrices()["driver.sedan"].min) },
     path: "/sri-lanka-private-driver",
     image: "/images/tea-estate.webp",
   });
@@ -30,7 +33,7 @@ export const generateMetadata = (): Promise<Metadata> =>
 const driverFaqs = [
   {
     q: "How much does a private driver cost in Sri Lanka?",
-    a: "Private car and driver rates in Sri Lanka typically range between $55 and $65 USD per day for a comfortable air-conditioned sedan (1–3 passengers), and $75 to $90 USD per day for a spacious Toyota KDH van (4–8 passengers). With Krishan Tours Sri Lanka, our daily rate covers your vehicle, fuel, highway tolls, parking fees, insurance, and the driver’s own meals and accommodation.",
+    a: "Private car and driver rates in Sri Lanka typically range between {driver.sedan.min} and {driver.sedan.max} USD per day for a comfortable air-conditioned sedan (1–3 passengers), and {driver.van.min} to {driver.van.max} USD per day for a spacious Toyota KDH van (4–8 passengers). With Krishan Tours Sri Lanka, our daily rate covers your vehicle, fuel, highway tolls, parking fees, insurance, and the driver’s own meals and accommodation.",
   },
   {
     q: "Do I need to pay for the driver's meals and accommodation?",
@@ -42,7 +45,7 @@ const driverFaqs = [
   },
   {
     q: "What is the customary tip for a private driver in Sri Lanka?",
-    a: "Tipping is customary in Sri Lanka as a recognition of good hospitality. If you are delighted with your driver-guide’s attentiveness, safety, and local guidance, an average gratuity of 3,000 to 5,000 LKR ($10–$15 USD) per day from your group is standard and deeply appreciated.",
+    a: "Tipping is customary in Sri Lanka as a recognition of good hospitality. If you are delighted with your driver-guide’s attentiveness, safety, and local guidance, an average gratuity of ({driver.tip} USD) per day from your group is standard and deeply appreciated.",
   },
   {
     q: "How does airport pickup work at Colombo Bandaranaike (CMB)?",
@@ -56,6 +59,9 @@ const driverFaqs = [
 
 export default async function PrivateDriverPage() {
   const { t, locale } = await getI18n();
+  const prices = getPrices();
+  const pv = priceValues(prices);
+  const faqs = localizeFaqs(driverFaqs, t, pv);
   const prefix = locale === "en" ? "" : `/${locale}`;
 
   const schema = {
@@ -75,19 +81,19 @@ export default async function PrivateDriverPage() {
         offers: {
           "@type": "AggregateOffer",
           priceCurrency: "USD",
-          lowPrice: "55",
-          highPrice: "90",
+          lowPrice: String(prices["driver.sedan"].min),
+          highPrice: String(prices["driver.van"].max ?? prices["driver.van"].min),
           priceValidUntil: "2027-12-31",
         },
       },
       {
         "@type": "FAQPage",
-        mainEntity: driverFaqs.map((faq) => ({
+        mainEntity: faqs.map((faq) => ({
           "@type": "Question",
-          name: t(faq.q),
+          name: faq.q,
           acceptedAnswer: {
             "@type": "Answer",
-            text: t(faq.a),
+            text: faq.a,
           },
         })),
       },
@@ -237,7 +243,7 @@ export default async function PrivateDriverPage() {
                 <h3 className="display mt-4 text-4xl">{t("Air-Conditioned Sedan")}</h3>
                 <p className="mt-1 text-xs text-black/55">{t("Toyota Premio / Axio / Prius or similar")}</p>
                 <div className="mt-6 flex items-baseline gap-2">
-                  <span className="display text-5xl text-jungle">$55 – $65</span>
+                  <span className="display text-5xl text-jungle">{priceRange(prices["driver.sedan"])}</span>
                   <span className="text-xs text-black/55">/ {t("day (USD)")}</span>
                 </div>
                 <p className="mt-3 text-xs leading-5 text-black/60">
@@ -276,7 +282,7 @@ export default async function PrivateDriverPage() {
                 <h3 className="display mt-4 text-4xl">{t("Toyota KDH Van")}</h3>
                 <p className="mt-1 text-xs text-black/55">{t("Toyota HiAce KDH Super GL / Grand Cabin")}</p>
                 <div className="mt-6 flex items-baseline gap-2">
-                  <span className="display text-5xl text-jungle">$75 – $90</span>
+                  <span className="display text-5xl text-jungle">{priceRange(prices["driver.van"])}</span>
                   <span className="text-xs text-black/55">/ {t("day (USD)")}</span>
                 </div>
                 <p className="mt-3 text-xs leading-5 text-black/60">
@@ -476,7 +482,7 @@ export default async function PrivateDriverPage() {
               <MessageCircle size={16} /> {t("Chat on WhatsApp")}
             </a>
           </div>
-          <FAQ items={driverFaqs} />
+          <FAQ items={faqs} />
         </div>
       </section>
 

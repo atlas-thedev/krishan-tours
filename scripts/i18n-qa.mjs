@@ -4,6 +4,7 @@ const baseUrl = process.env.QA_BASE_URL || "http://127.0.0.1:3418";
 const locales = [
   ["en", "/", "ltr"], ["ar", "/ar", "rtl"], ["cs", "/cs", "ltr"],
   ["fr", "/fr", "ltr"], ["pl", "/pl", "ltr"], ["de", "/de", "ltr"],
+  ["es", "/es", "ltr"], ["it", "/it", "ltr"], ["nl", "/nl", "ltr"], ["ru", "/ru", "ltr"], ["zh", "/zh", "ltr"], ["ja", "/ja", "ltr"],
 ];
 const browser = await chromium.launch({ headless: true, executablePath: process.env.CHROME || undefined });
 const page = await browser.newPage({ viewport: { width: 390, height: 844 } });

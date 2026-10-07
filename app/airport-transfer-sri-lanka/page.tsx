@@ -13,6 +13,8 @@ import { SectionHeading } from "@/components/SectionHeading";
 import { siteConfig, whatsappUrl } from "@/lib/site";
 import { getI18n } from "@/lib/i18n/server";
 import { localizedMetadata } from "@/lib/i18n/metadata";
+import { getPrices } from "@/lib/content-db";
+import { localizeFaqs, priceRange, priceValues } from "@/lib/money";
 import { JsonLd, organizationId } from "@/components/JsonLd";
 
 export const generateMetadata = (): Promise<Metadata> =>
@@ -48,22 +50,25 @@ const transferFaqs = [
 ];
 
 const transferRates = [
-  { dest: "Negombo (Beach / Town)", time: "20 – 30 mins", sedan: "$22", van: "$30" },
-  { dest: "Colombo City Centre", time: "45 mins", sedan: "$38", van: "$48" },
-  { dest: "Panadura / Wadduwa", time: "1 hr 15 mins", sedan: "$48", van: "$58" },
-  { dest: "Bentota / Beruwala", time: "1 hr 30 mins", sedan: "$58", van: "$70" },
-  { dest: "Hikkaduwa", time: "1 hr 45 mins", sedan: "$68", van: "$80" },
-  { dest: "Galle Fort / Unawatuna", time: "2 hrs", sedan: "$75", van: "$90" },
-  { dest: "Mirissa / Weligama", time: "2 hrs 15 mins", sedan: "$88", van: "$105" },
-  { dest: "Tangalle / Hiriketiya", time: "2 hrs 45 mins", sedan: "$105", van: "$125" },
-  { dest: "Kandy (Hill Capital)", time: "3 hrs", sedan: "$78", van: "$95" },
-  { dest: "Sigiriya / Dambulla", time: "3 hrs 30 mins", sedan: "$95", van: "$115" },
-  { dest: "Ella / Nuwara Eliya", time: "4 hrs 30 mins", sedan: "$135", van: "$160" },
-  { dest: "Arugam Bay (East Coast)", time: "6 hrs", sedan: "$175", van: "$210" },
+  { dest: "Negombo (Beach / Town)", time: "20 – 30 mins", id: "negombo" },
+  { dest: "Colombo City Centre", time: "45 mins", id: "colombo" },
+  { dest: "Panadura / Wadduwa", time: "1 hr 15 mins", id: "panadura" },
+  { dest: "Bentota / Beruwala", time: "1 hr 30 mins", id: "bentota" },
+  { dest: "Hikkaduwa", time: "1 hr 45 mins", id: "hikkaduwa" },
+  { dest: "Galle Fort / Unawatuna", time: "2 hrs", id: "galle" },
+  { dest: "Mirissa / Weligama", time: "2 hrs 15 mins", id: "mirissa" },
+  { dest: "Tangalle / Hiriketiya", time: "2 hrs 45 mins", id: "tangalle" },
+  { dest: "Kandy (Hill Capital)", time: "3 hrs", id: "kandy" },
+  { dest: "Sigiriya / Dambulla", time: "3 hrs 30 mins", id: "sigiriya" },
+  { dest: "Ella / Nuwara Eliya", time: "4 hrs 30 mins", id: "ella" },
+  { dest: "Arugam Bay (East Coast)", time: "6 hrs", id: "arugam" },
 ];
 
 export default async function AirportTransferPage() {
   const { t, locale } = await getI18n();
+  const prices = getPrices();
+  const pv = priceValues(prices);
+  const faqs = localizeFaqs(transferFaqs, t, pv);
   const prefix = locale === "en" ? "" : `/${locale}`;
 
   const schema = {
@@ -83,12 +88,12 @@ export default async function AirportTransferPage() {
       },
       {
         "@type": "FAQPage",
-        mainEntity: transferFaqs.map((faq) => ({
+        mainEntity: faqs.map((faq) => ({
           "@type": "Question",
-          name: t(faq.q),
+          name: faq.q,
           acceptedAnswer: {
             "@type": "Answer",
-            text: t(faq.a),
+            text: faq.a,
           },
         })),
       },
@@ -191,8 +196,8 @@ export default async function AirportTransferPage() {
                   <tr key={rate.dest} className="hover:bg-paper/50 transition-colors">
                     <td className="py-4 px-6 font-semibold text-jungle">{rate.dest}</td>
                     <td className="py-4 px-6 text-black/60 text-xs">{rate.time}</td>
-                    <td className="py-4 px-6 font-bold text-emerald-800">{rate.sedan}</td>
-                    <td className="py-4 px-6 font-bold text-jungle">{rate.van}</td>
+                    <td className="py-4 px-6 font-bold text-emerald-800">{priceRange(prices[`transfer.${rate.id}.sedan`])}</td>
+                    <td className="py-4 px-6 font-bold text-jungle">{priceRange(prices[`transfer.${rate.id}.van`])}</td>
                     <td className="py-4 px-6 text-right">
                       <a
                         href={whatsappUrl(
@@ -285,7 +290,7 @@ export default async function AirportTransferPage() {
               )}
             </p>
           </div>
-          <FAQ items={transferFaqs} />
+          <FAQ items={faqs} />
         </div>
       </section>
 

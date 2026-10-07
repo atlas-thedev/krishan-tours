@@ -13,13 +13,15 @@ export function postProcess(target, text) {
     .replace(/Sri Lanka\s?n\b/g, "Sri Lanka")
     .trim();
   if (target === "fr") out = out.replace(/\b(à|en) Sri Lanka\b/g, "au Sri Lanka").replace(/\bde Sri Lanka\b/g, "du Sri Lanka").replace(/\bdu Sri Lanka\b/g, "du Sri Lanka");
+  if (target === "es") out = out.replace(/\ben el Sri Lanka\b/g, "en Sri Lanka");
+  if (target === "zh" || target === "ja") out = out.replace(/(\p{Script=Han}|\p{Script=Katakana}|\p{Script=Hiragana}) (\{[^}]+\})/gu, "$1$2").replace(/(\{[^}]+\}) (\p{Script=Han}|\p{Script=Katakana}|\p{Script=Hiragana})/gu, "$1$2");
   if (target === "de") out = out.replace(/\bim Sri Lanka\b/g, "in Sri Lanka");
   return out;
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const dir = path.join(process.cwd(), "lib", "i18n", "generated");
-  for (const target of ["ar", "cs", "fr", "pl", "de"]) {
+  for (const target of ["ar", "cs", "fr", "pl", "de", "es", "it", "nl", "ru", "zh", "ja"]) {
     const file = path.join(dir, `${target}.json`);
     const data = JSON.parse(await fs.readFile(file, "utf8"));
     let changed = 0;

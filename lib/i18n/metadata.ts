@@ -10,6 +10,12 @@ export const ogLocaleMap: Record<Locale, string> = {
   fr: "fr_FR",
   pl: "pl_PL",
   de: "de_DE",
+  es: "es_ES",
+  it: "it_IT",
+  nl: "nl_NL",
+  ru: "ru_RU",
+  zh: "zh_CN",
+  ja: "ja_JP",
 };
 
 /** Absolute URL for a locale-aware path. */
@@ -44,6 +50,7 @@ export async function localizedMetadata({
   image,
   absoluteTitle = false,
   type = "website",
+  values,
 }: {
   title: string;
   description?: string;
@@ -52,11 +59,13 @@ export async function localizedMetadata({
   /** Skip the "| Krishan Tours" template (used for the home page). */
   absoluteTitle?: boolean;
   type?: "website" | "article";
+  /** Placeholder values (e.g. live prices) for the title and description. */
+  values?: Record<string, string | number>;
 }): Promise<Metadata> {
   const { locale, t } = await getI18n();
   const canonicalUrl = absoluteUrl(path, locale);
-  const translatedTitle = t(title);
-  const translatedDesc = clip(description ? t(description) : undefined);
+  const translatedTitle = t(title, values);
+  const translatedDesc = clip(description ? t(description, values) : undefined);
 
   // Open Graph / Twitter images must be JPEG/PNG for WhatsApp and iMessage previews.
   let resolvedImageUrl = `${siteConfig.url}/images/og-image.jpg`;

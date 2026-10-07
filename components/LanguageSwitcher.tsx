@@ -85,7 +85,7 @@ export function LanguageSwitcher({
           aria-label={t("Choose language")}
           className={`absolute ${
             direction === "up" ? "bottom-full mb-1.5" : "top-full mt-1.5"
-          } end-0 z-50 min-w-[145px] border border-black/15 bg-paper py-1 shadow-lg`}
+          } end-0 z-50 max-h-[min(70vh,26rem)] min-w-[160px] overflow-y-auto overscroll-contain border border-black/15 bg-paper py-1 shadow-lg`}
         >
           {locales.map((item) => {
             const isSelected = item === locale;

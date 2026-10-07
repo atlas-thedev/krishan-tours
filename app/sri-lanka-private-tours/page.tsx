@@ -15,6 +15,8 @@ import { SectionHeading } from "@/components/SectionHeading";
 import { siteConfig, whatsappUrl } from "@/lib/site";
 import { getI18n } from "@/lib/i18n/server";
 import { localizedMetadata } from "@/lib/i18n/metadata";
+import { getPrices } from "@/lib/content-db";
+import { localizeFaqs, priceRange, priceValues } from "@/lib/money";
 import { JsonLd, organizationId } from "@/components/JsonLd";
 
 export const generateMetadata = (): Promise<Metadata> =>
@@ -51,6 +53,9 @@ const privateTourFaqs = [
 
 export default async function PrivateToursPage() {
   const { t, locale } = await getI18n();
+  const prices = getPrices();
+  const pv = priceValues(prices);
+  const faqs = localizeFaqs(privateTourFaqs, t, pv);
   const prefix = locale === "en" ? "" : `/${locale}`;
 
   const schema = {
@@ -75,12 +80,12 @@ export default async function PrivateToursPage() {
       },
       {
         "@type": "FAQPage",
-        mainEntity: privateTourFaqs.map((faq) => ({
+        mainEntity: faqs.map((faq) => ({
           "@type": "Question",
-          name: t(faq.q),
+          name: faq.q,
           acceptedAnswer: {
             "@type": "Answer",
-            text: t(faq.a),
+            text: faq.a,
           },
         })),
       },
@@ -263,7 +268,7 @@ export default async function PrivateToursPage() {
                 <span className="eyebrow text-gold">{t("Option 01")}</span>
                 <h3 className="display mt-2 text-3xl">{t("Driver & Vehicle Only")}</h3>
                 <div className="mt-4 flex items-baseline gap-2">
-                  <span className="display text-4xl text-gold">$55 – $85</span>
+                  <span className="display text-4xl text-gold">{priceRange({ min: prices["driver.sedan"].min, max: prices["driver.van"].max ?? prices["driver.van"].min })}</span>
                   <span className="text-xs text-white/60">/ {t("day (total car)")}</span>
                 </div>
                 <p className="mt-4 text-xs leading-5 text-white/70">
@@ -290,7 +295,7 @@ export default async function PrivateToursPage() {
                 <span className="eyebrow text-gold">{t("Option 02")}</span>
                 <h3 className="display mt-2 text-3xl">{t("Boutique Private Tour")}</h3>
                 <div className="mt-4 flex items-baseline gap-2">
-                  <span className="display text-4xl text-gold">$120 – $170</span>
+                  <span className="display text-4xl text-gold">{priceRange(prices["privateTours.boutique"])}</span>
                   <span className="text-xs text-white/60">/ {t("person / day")}</span>
                 </div>
                 <p className="mt-4 text-xs leading-5 text-white/70">
@@ -314,7 +319,7 @@ export default async function PrivateToursPage() {
                 <span className="eyebrow text-gold">{t("Option 03")}</span>
                 <h3 className="display mt-2 text-3xl">{t("Luxury Heritage Tour")}</h3>
                 <div className="mt-4 flex items-baseline gap-2">
-                  <span className="display text-4xl text-gold">$220 – $350+</span>
+                  <span className="display text-4xl text-gold">{priceRange(prices["privateTours.luxury"])}</span>
                   <span className="text-xs text-white/60">/ {t("person / day")}</span>
                 </div>
                 <p className="mt-4 text-xs leading-5 text-white/70">
@@ -424,7 +429,7 @@ export default async function PrivateToursPage() {
               <MessageCircle size={16} /> {t("Chat on WhatsApp")}
             </a>
           </div>
-          <FAQ items={privateTourFaqs} />
+          <FAQ items={faqs} />
         </div>
       </section>
 

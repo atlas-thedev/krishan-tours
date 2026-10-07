@@ -8,12 +8,12 @@ import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 import { I18nProvider } from "@/components/I18nProvider";
 import { CookieConsent } from "@/components/CookieConsent";
 import { getI18n } from "@/lib/i18n/server";
-import { direction } from "@/lib/i18n/config";
+import { direction, locales } from "@/lib/i18n/config";
 import { siteConfig } from "@/lib/site";
 import { JsonLd, organizationId, websiteId } from "@/components/JsonLd";
 
-const display = Cormorant_Garamond({ subsets:["latin"], variable:"--font-display", weight:["400"], style:["normal","italic"], display:"optional" });
-const sans = Manrope({ subsets:["latin"], variable:"--font-sans", display:"swap" });
+const display = Cormorant_Garamond({ subsets:["latin","latin-ext","cyrillic"], variable:"--font-display", weight:["400"], style:["normal","italic"], display:"optional" });
+const sans = Manrope({ subsets:["latin","latin-ext","cyrillic"], variable:"--font-sans", display:"swap" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
@@ -46,7 +46,7 @@ export const viewport: Viewport = { themeColor:"#17382b", width:"device-width", 
 
 export default async function RootLayout({children}:{children:React.ReactNode}) {
   const { locale, t, catalog } = await getI18n();
-  const sameAsLinks = Object.values(siteConfig.social).filter((url) => url && !url.includes("/Search?"));
+  const sameAsLinks = Object.values(siteConfig.social).filter(Boolean);
   const schema = {
     "@context": "https://schema.org",
     "@graph": [
@@ -74,7 +74,8 @@ export default async function RootLayout({children}:{children:React.ReactNode}) 
           "addressCountry": "LK"
         },
         "geo": { "@type": "GeoCoordinates", "latitude": siteConfig.geo.latitude, "longitude": siteConfig.geo.longitude },
-        "hasMap": `https://www.google.com/maps/search/?api=1&query=${siteConfig.geo.latitude},${siteConfig.geo.longitude}`,
+        "hasMap": siteConfig.social.google,
+        "openingHoursSpecification": [{ "@type": "OpeningHoursSpecification", "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"], "opens": "00:00", "closes": "23:59" }],
         "contactPoint": [{
           "@type": "ContactPoint",
           "telephone": siteConfig.phone,
@@ -94,7 +95,7 @@ export default async function RootLayout({children}:{children:React.ReactNode}) 
         "name": siteConfig.name,
         "alternateName": "Krishan Tours",
         "publisher": { "@id": organizationId },
-        "inLanguage": ["en", "ar", "cs", "fr", "pl", "de"]
+        "inLanguage": [...locales]
       }
     ]
   };

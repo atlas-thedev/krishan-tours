@@ -34,7 +34,7 @@ const databasePath = process.env.INQUIRY_DB_PATH || path.join(dataDirectory, "in
 
 let database: Database.Database | undefined;
 
-function getDatabase() {
+export function getDatabase() {
   if (database) return database;
   mkdirSync(path.dirname(databasePath), { recursive: true, mode: 0o700 });
   database = new Database(databasePath);
@@ -66,6 +66,20 @@ function getDatabase() {
     );
     CREATE INDEX IF NOT EXISTS inquiries_received_at ON inquiries(received_at DESC);
     CREATE INDEX IF NOT EXISTS inquiries_status ON inquiries(status);
+    CREATE TABLE IF NOT EXISTS prices (
+      key TEXT PRIMARY KEY,
+      min REAL NOT NULL,
+      max REAL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS trip_settings (
+      slug TEXT PRIMARY KEY,
+      pinned INTEGER NOT NULL DEFAULT 0,
+      sort_order INTEGER NOT NULL DEFAULT 100,
+      from_price REAL,
+      hidden INTEGER NOT NULL DEFAULT 0,
+      updated_at TEXT NOT NULL
+    );
     CREATE TABLE IF NOT EXISTS admin_credentials (
       username TEXT PRIMARY KEY,
       password_hash TEXT NOT NULL,
@@ -147,11 +161,18 @@ export function saveInquiry(inquiry: NewInquiry) {
   );
 }
 
-export function listInquiries(status?: InquiryStatus) {
+export function listInquiries(status?: InquiryStatus, search = "") {
   const db = getDatabase();
-  const rows = status
-    ? db.prepare("SELECT * FROM inquiries WHERE status = ? ORDER BY received_at DESC").all(status)
-    : db.prepare("SELECT * FROM inquiries ORDER BY received_at DESC").all();
+  const where: string[] = [];
+  const params: string[] = [];
+  if (status) { where.push("status = ?"); params.push(status); }
+  const term = search.trim().slice(0, 80);
+  if (term) {
+    where.push("(name LIKE ? OR email LIKE ? OR phone LIKE ? OR message LIKE ? OR country LIKE ? OR admin_note LIKE ?)");
+    const like = `%${term.replace(/[%_]/g, "")}%`;
+    params.push(like, like, like, like, like, like);
+  }
+  const rows = db.prepare(`SELECT * FROM inquiries ${where.length ? `WHERE ${where.join(" AND ")}` : ""} ORDER BY received_at DESC LIMIT 300`).all(...params);
   return (rows as unknown as InquiryRow[]).map(hydrate);
 }
 

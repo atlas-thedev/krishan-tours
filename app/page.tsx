@@ -18,7 +18,7 @@ import { Reveal } from "@/components/Reveal";
 import { FAQ } from "@/components/FAQ";
 import { commonFaqs } from "@/data/faqs";
 import { destinations } from "@/data/destinations";
-import { tours } from "@/data/tours";
+import { getListedTours } from "@/lib/content-db";
 import { stories } from "@/data/stories";
 import { getI18n } from "@/lib/i18n/server";
 import { localizedMetadata } from "@/lib/i18n/metadata";
@@ -49,6 +49,7 @@ const homeFaqs = [
 
 export default async function HomePage() {
   const { t } = await getI18n();
+  const listedTours = getListedTours();
   const faqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -147,7 +148,7 @@ export default async function HomePage() {
             }
           />
           <div className="mt-12">
-            {tours.slice(0, 3).map((tour, index) => (
+            {listedTours.slice(0, 3).map((tour, index) => (
               <TourCard key={tour.slug} tour={tour} index={index} />
             ))}
           </div>

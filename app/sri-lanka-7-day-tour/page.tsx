@@ -14,6 +14,8 @@ import { SectionHeading } from "@/components/SectionHeading";
 import { siteConfig, whatsappUrl } from "@/lib/site";
 import { getI18n } from "@/lib/i18n/server";
 import { localizedMetadata } from "@/lib/i18n/metadata";
+import { getPrices } from "@/lib/content-db";
+import { localizeFaqs, priceRange, priceValues } from "@/lib/money";
 import { JsonLd, organizationId } from "@/components/JsonLd";
 
 export const generateMetadata = (): Promise<Metadata> =>
@@ -44,7 +46,7 @@ const tourFaqs = [
   },
   {
     q: "How much does the 7-day Sri Lanka private tour cost?",
-    a: "Driver-only hire for 7 full days is $420–$490 USD total for the entire car (1–3 passengers). Our complete boutique package with 6 nights of handpicked hotels, breakfasts, and reserved train tickets starts from $690 USD per person based on double occupancy.",
+    a: "Driver-only hire for 7 full days is {tour7.driver} USD total for the entire car (1–3 passengers). Our complete boutique package with 6 nights of handpicked hotels, breakfasts, and reserved train tickets starts from {tour7.package.min} USD per person based on double occupancy.",
   },
 ];
 
@@ -116,6 +118,9 @@ const itineraryDays = [
 
 export default async function SriLanka7DayTourPage() {
   const { t, locale } = await getI18n();
+  const prices = getPrices();
+  const pv = priceValues(prices);
+  const faqs = localizeFaqs(tourFaqs, t, pv);
   const prefix = locale === "en" ? "" : `/${locale}`;
 
   const schema = {
@@ -127,25 +132,20 @@ export default async function SriLanka7DayTourPage() {
         description:
           "The perfect 1-week private tour of Sri Lanka covering Sigiriya, Kandy, Nuwara Eliya tea country, Ella scenic train, and Galle Dutch Fort.",
         provider: { "@id": organizationId },
+        offers: { "@type": "Offer", price: prices["tour7.package"].min, priceCurrency: "USD", availability: "https://schema.org/InStock", url: `${siteConfig.url}${prefix}/sri-lanka-7-day-tour` },
         itinerary: itineraryDays.map((d) => ({
           "@type": "TouristAttraction",
           name: `Day ${d.day}: ${d.title} (${d.location})`,
         })),
-        offers: {
-          "@type": "Offer",
-          priceCurrency: "USD",
-          price: "690",
-          availability: "https://schema.org/InStock",
-        },
       },
       {
         "@type": "FAQPage",
-        mainEntity: tourFaqs.map((faq) => ({
+        mainEntity: faqs.map((faq) => ({
           "@type": "Question",
-          name: t(faq.q),
+          name: faq.q,
           acceptedAnswer: {
             "@type": "Answer",
-            text: t(faq.a),
+            text: faq.a,
           },
         })),
       },
@@ -301,7 +301,7 @@ export default async function SriLanka7DayTourPage() {
                 <span className="eyebrow text-cinnamon">{t("Option A")}</span>
                 <h3 className="display mt-2 text-3xl">{t("Driver & Vehicle Only (7 Days)")}</h3>
                 <div className="mt-4 flex items-baseline gap-2">
-                  <span className="display text-4xl text-jungle">$420 – $490</span>
+                  <span className="display text-4xl text-jungle">{priceRange(prices["tour7.driver"])}</span>
                   <span className="text-xs text-black/55">/ {t("total vehicle (1-3 passengers)")}</span>
                 </div>
                 <p className="mt-4 text-xs leading-5 text-black/60">
@@ -331,7 +331,7 @@ export default async function SriLanka7DayTourPage() {
                 <span className="eyebrow text-cinnamon">{t("Option B")}</span>
                 <h3 className="display mt-2 text-3xl">{t("Complete Boutique Tour (7 Days)")}</h3>
                 <div className="mt-4 flex items-baseline gap-2">
-                  <span className="display text-4xl text-jungle">$690 – $890</span>
+                  <span className="display text-4xl text-jungle">{priceRange(prices["tour7.package"])}</span>
                   <span className="text-xs text-black/55">/ {t("person (based on 2 travelers)")}</span>
                 </div>
                 <p className="mt-4 text-xs leading-5 text-black/60">
@@ -373,7 +373,7 @@ export default async function SriLanka7DayTourPage() {
               )}
             </p>
           </div>
-          <FAQ items={tourFaqs} />
+          <FAQ items={faqs} />
         </div>
       </section>
 

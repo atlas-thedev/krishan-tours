@@ -53,6 +53,9 @@ export function Footer() {
               <a href={siteConfig.social.tripadvisor} target="_blank" rel="noreferrer" className="text-gold hover:underline">
                 {t("Tripadvisor Reviews")} ↗
               </a>
+              <a href={siteConfig.social.google} target="_blank" rel="noreferrer" className="text-gold hover:underline">
+                {t("Google Reviews")} ↗
+              </a>
             </div>
           </div>
           <div>

@@ -17,6 +17,8 @@ import { SectionHeading } from "@/components/SectionHeading";
 import { siteConfig, whatsappUrl } from "@/lib/site";
 import { getI18n } from "@/lib/i18n/server";
 import { localizedMetadata } from "@/lib/i18n/metadata";
+import { getPrices, orderBySettings } from "@/lib/content-db";
+import { localizeFaqs, money, priceValues } from "@/lib/money";
 import { JsonLd } from "@/components/JsonLd";
 
 export const generateMetadata = (): Promise<Metadata> =>
@@ -56,7 +58,7 @@ const packagesList = [
     slug: "/sigiriya-kandy-ella-tour",
     name: "5-Day Golden Route Express",
     days: 5,
-    price: "From $480 / person",
+    priceKey: "ske.package",
     summary: "Sigiriya Lion Rock, Dambulla Cave Temple, Kandy Temple of the Tooth, and the scenic mountain train to Ella.",
     image: "/images/pidurangala-sigiriya.webp",
     stops: ["Sigiriya", "Kandy", "Ella"],
@@ -66,7 +68,7 @@ const packagesList = [
     slug: "/sri-lanka-7-day-tour",
     name: "7-Day Sri Lanka Highlights",
     days: 7,
-    price: "From $690 / person",
+    priceKey: "tour7.package",
     summary: "Ancient rock fortresses, spice gardens, central tea plantations, highland train ride, and historic Galle Fort ramparts.",
     image: "/images/tea-hills.webp",
     stops: ["Cultural Triangle", "Kandy", "Ella", "Galle"],
@@ -76,7 +78,7 @@ const packagesList = [
     slug: "/sri-lanka-10-day-tour",
     name: "10-Day Culture, Tea & Safari",
     days: 10,
-    price: "From $980 / person",
+    priceKey: "tour10.package",
     summary: "The most popular balanced itinerary: ancient ruins, misted tea estates, scenic train, Yala leopard safari, and golden southern beaches.",
     image: "/images/elephants.webp",
     stops: ["Anuradhapura", "Sigiriya", "Kandy", "Nuwara Eliya", "Yala", "Galle"],
@@ -86,7 +88,7 @@ const packagesList = [
     slug: "/sri-lanka-14-day-tour",
     name: "14-Day Ultimate Island Odyssey",
     days: 14,
-    price: "From $1,390 / person",
+    priceKey: "tour14.package",
     summary: "The complete grand loop. Three UNESCO World Heritage sites, two distinct wildlife habitats, mountain trails, and a slow barefoot beach finish.",
     image: "/images/nine-arches.webp",
     stops: ["Anuradhapura", "Sigiriya", "Kandy", "Tea Country", "Ella", "Yala", "Mirissa", "Galle"],
@@ -96,6 +98,10 @@ const packagesList = [
 
 export default async function TourPackagesPage() {
   const { t, locale } = await getI18n();
+  const prices = getPrices();
+  const pv = priceValues(prices);
+  const faqs = localizeFaqs(packageFaqs, t, pv);
+  const packages = orderBySettings(packagesList.map((pkg) => ({ ...pkg, href: pkg.slug, slug: pkg.slug.slice(1) })));
   const prefix = locale === "en" ? "" : `/${locale}`;
 
   const schema = {
@@ -106,21 +112,21 @@ export default async function TourPackagesPage() {
         name: "Sri Lanka Tour Packages by Krishan Tours Sri Lanka",
         description:
           "Curated private tour packages in Sri Lanka offering chauffeur-driven transport, boutique accommodations, and immersive experiences.",
-        itemListElement: packagesList.map((pkg, index) => ({
+        itemListElement: packages.map((pkg, index) => ({
           "@type": "ListItem",
           position: index + 1,
           name: pkg.name,
-          url: `${siteConfig.url}${prefix}${pkg.slug}`,
+          url: `${siteConfig.url}${prefix}${pkg.href}`,
         })),
       },
       {
         "@type": "FAQPage",
-        mainEntity: packageFaqs.map((faq) => ({
+        mainEntity: faqs.map((faq) => ({
           "@type": "Question",
-          name: t(faq.q),
+          name: faq.q,
           acceptedAnswer: {
             "@type": "Answer",
-            text: t(faq.a),
+            text: faq.a,
           },
         })),
       },
@@ -196,7 +202,7 @@ export default async function TourPackagesPage() {
           />
 
           <div className="mt-14 grid gap-10 lg:grid-cols-2">
-            {packagesList.map((pkg) => (
+            {packages.map((pkg) => (
               <div
                 key={pkg.slug}
                 className="border border-black/15 bg-white overflow-hidden flex flex-col justify-between group hover:shadow-md transition-shadow"
@@ -214,7 +220,7 @@ export default async function TourPackagesPage() {
                       {pkg.days} {t("Days")}
                     </div>
                     <div className="absolute bottom-4 right-4 bg-jungle text-gold px-3.5 py-1.5 text-xs font-bold tracking-wider">
-                      {t(pkg.price)}
+                      {t("From {price} / person", { price: money(prices[pkg.priceKey].min) })}
                     </div>
                   </div>
 
@@ -232,7 +238,7 @@ export default async function TourPackagesPage() {
                 </div>
 
                 <div className="p-8 pt-0 flex items-center justify-between gap-4 border-t border-black/10">
-                  <Link href={pkg.slug} className="link-arrow text-xs font-bold uppercase tracking-wider">
+                  <Link href={pkg.href} className="link-arrow text-xs font-bold uppercase tracking-wider">
                     {t("View Full Itinerary")} <ArrowRight size={14} />
                   </Link>
                   <a
@@ -321,7 +327,7 @@ export default async function TourPackagesPage() {
               )}
             </p>
           </div>
-          <FAQ items={packageFaqs} />
+          <FAQ items={faqs} />
         </div>
       </section>
 

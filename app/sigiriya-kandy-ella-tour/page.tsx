@@ -14,6 +14,8 @@ import { SectionHeading } from "@/components/SectionHeading";
 import { siteConfig, whatsappUrl } from "@/lib/site";
 import { getI18n } from "@/lib/i18n/server";
 import { localizedMetadata } from "@/lib/i18n/metadata";
+import { getPrices } from "@/lib/content-db";
+import { localizeFaqs, priceRange, priceValues } from "@/lib/money";
 import { JsonLd, organizationId } from "@/components/JsonLd";
 
 export const generateMetadata = (): Promise<Metadata> =>
@@ -98,6 +100,9 @@ const itineraryDays = [
 
 export default async function SigiriyaKandyEllaPage() {
   const { t, locale } = await getI18n();
+  const prices = getPrices();
+  const pv = priceValues(prices);
+  const faqs = localizeFaqs(tourFaqs, t, pv);
   const prefix = locale === "en" ? "" : `/${locale}`;
 
   const schema = {
@@ -109,25 +114,20 @@ export default async function SigiriyaKandyEllaPage() {
         description:
           "Sri Lanka's classic 5-day Golden Route covering Sigiriya Lion Rock, Dambulla Cave Temple, Kandy Temple of the Tooth, and the scenic mountain train to Ella.",
         provider: { "@id": organizationId },
+        offers: { "@type": "Offer", price: prices["ske.package"].min, priceCurrency: "USD", availability: "https://schema.org/InStock", url: `${siteConfig.url}${prefix}/sigiriya-kandy-ella-tour` },
         itinerary: itineraryDays.map((d) => ({
           "@type": "TouristAttraction",
           name: `Day ${d.day}: ${d.title} (${d.location})`,
         })),
-        offers: {
-          "@type": "Offer",
-          priceCurrency: "USD",
-          price: "480",
-          availability: "https://schema.org/InStock",
-        },
       },
       {
         "@type": "FAQPage",
-        mainEntity: tourFaqs.map((faq) => ({
+        mainEntity: faqs.map((faq) => ({
           "@type": "Question",
-          name: t(faq.q),
+          name: faq.q,
           acceptedAnswer: {
             "@type": "Answer",
-            text: t(faq.a),
+            text: faq.a,
           },
         })),
       },
@@ -283,7 +283,7 @@ export default async function SigiriyaKandyEllaPage() {
                 <span className="eyebrow text-cinnamon">{t("Option A")}</span>
                 <h3 className="display mt-2 text-3xl">{t("Driver & Vehicle Only (5 Days)")}</h3>
                 <div className="mt-4 flex items-baseline gap-2">
-                  <span className="display text-4xl text-jungle">$290 – $340</span>
+                  <span className="display text-4xl text-jungle">{priceRange(prices["ske.driver"])}</span>
                   <span className="text-xs text-black/55">/ {t("total vehicle (1-3 passengers)")}</span>
                 </div>
                 <p className="mt-4 text-xs leading-5 text-black/60">
@@ -313,7 +313,7 @@ export default async function SigiriyaKandyEllaPage() {
                 <span className="eyebrow text-cinnamon">{t("Option B")}</span>
                 <h3 className="display mt-2 text-3xl">{t("Complete Boutique Tour (5 Days)")}</h3>
                 <div className="mt-4 flex items-baseline gap-2">
-                  <span className="display text-4xl text-jungle">$480 – $640</span>
+                  <span className="display text-4xl text-jungle">{priceRange(prices["ske.package"])}</span>
                   <span className="text-xs text-black/55">/ {t("person (based on 2 travelers)")}</span>
                 </div>
                 <p className="mt-4 text-xs leading-5 text-black/60">
@@ -355,7 +355,7 @@ export default async function SigiriyaKandyEllaPage() {
               )}
             </p>
           </div>
-          <FAQ items={tourFaqs} />
+          <FAQ items={faqs} />
         </div>
       </section>
 
