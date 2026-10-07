@@ -25,6 +25,10 @@ export type InquiryRecord = {
   country: string;
   ip: string;
   adminNote: string;
+  /** Site language the traveller used (en, de, fr, ru…). */
+  language: string;
+  /** Page the form was sent from. */
+  page: string;
 };
 
 export type NewInquiry = Omit<InquiryRecord, "updatedAt" | "status" | "adminNote">;
@@ -92,6 +96,10 @@ export function getDatabase() {
     .run(new Date(Date.now() - 90 * 24 * 60 * 60 * 1_000).toISOString());
   database.prepare("DELETE FROM inquiries WHERE received_at < ? AND status IN ('new', 'contacted', 'archived')")
     .run(new Date(Date.now() - 2 * 365 * 24 * 60 * 60 * 1_000).toISOString());
+  // Lightweight migrations for columns added after launch.
+  const columns = new Set((database.prepare("PRAGMA table_info(inquiries)").all() as { name: string }[]).map((c) => c.name));
+  if (!columns.has("language")) database.exec("ALTER TABLE inquiries ADD COLUMN language TEXT NOT NULL DEFAULT ''");
+  if (!columns.has("page")) database.exec("ALTER TABLE inquiries ADD COLUMN page TEXT NOT NULL DEFAULT ''");
   return database;
 }
 
@@ -116,6 +124,8 @@ type InquiryRow = {
   country: string;
   ip: string;
   admin_note: string;
+  language?: string;
+  page?: string;
 };
 
 function hydrate(row: InquiryRow): InquiryRecord {
@@ -142,6 +152,8 @@ function hydrate(row: InquiryRow): InquiryRecord {
     country: row.country,
     ip: row.ip,
     adminNote: row.admin_note,
+    language: row.language || "",
+    page: row.page || "",
   };
 }
 
@@ -151,13 +163,13 @@ export function saveInquiry(inquiry: NewInquiry) {
     INSERT INTO inquiries (
       id, received_at, updated_at, type, status, name, email, phone, month,
       message, timing, duration, traveller_group, interests, pace, stay,
-      budget, country, ip, admin_note
-    ) VALUES (?, ?, ?, ?, 'new', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '')
+      budget, country, ip, admin_note, language, page
+    ) VALUES (?, ?, ?, ?, 'new', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '', ?, ?)
   `).run(
     inquiry.id, inquiry.receivedAt, inquiry.receivedAt, inquiry.type,
     inquiry.name, inquiry.email, inquiry.phone, inquiry.month, inquiry.message,
     inquiry.timing, inquiry.duration, inquiry.group, JSON.stringify(inquiry.interests),
-    inquiry.pace, inquiry.stay, inquiry.budget, inquiry.country, inquiry.ip,
+    inquiry.pace, inquiry.stay, inquiry.budget, inquiry.country, inquiry.ip, inquiry.language, inquiry.page,
   );
 }
 

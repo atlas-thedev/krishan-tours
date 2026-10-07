@@ -1,4 +1,5 @@
 import { CalendarDays, ChevronDown, Mail, MapPin, MessageCircle, Phone, Users } from "lucide-react";
+import { localeNames, type Locale } from "@/lib/i18n/config";
 import type { InquiryRecord } from "@/lib/inquiries-db";
 import { InquiryManager } from "@/components/admin/InquiryManager";
 
@@ -26,6 +27,7 @@ export function InquiryCard({ inquiry, open = false }: { inquiry: InquiryRecord;
         <span className="flex flex-wrap items-center gap-2">
           <span className="truncate text-base font-semibold text-ink md:text-lg">{inquiry.name}</span>
           <span className={`rounded-full px-2 py-0.5 text-[.58rem] font-bold uppercase tracking-[.08em] ${statusStyle[inquiry.status]}`}>{inquiry.status}</span>
+          {inquiry.language && inquiry.language !== "en" && <span title={localeNames[inquiry.language as Locale] || inquiry.language} className="rounded-full bg-gold/25 px-2 py-0.5 text-[.58rem] font-bold uppercase tracking-[.08em] text-jungle">{localeNames[inquiry.language as Locale] || inquiry.language}</span>}
           {inquiry.type === "planner" && <span className="rounded-full border border-jungle/20 px-2 py-0.5 text-[.58rem] font-bold uppercase tracking-[.08em] text-jungle">Trip plan</span>}
         </span>
         <span className="mt-1 block truncate text-xs text-ink/50">{received} · {readable(inquiry.month || inquiry.timing || inquiry.duration)} · Ref {inquiry.id.slice(0, 6).toUpperCase()}</span>
@@ -47,7 +49,7 @@ export function InquiryCard({ inquiry, open = false }: { inquiry: InquiryRecord;
         <div className="flex items-center gap-2 capitalize"><CalendarDays size={15} className="shrink-0 text-cinnamon"/>{readable(inquiry.month || inquiry.timing)}</div>
       </dl>
 
-      {inquiry.message && <div className="mt-4 rounded-xl bg-paper p-4"><p className="text-[.62rem] font-bold uppercase tracking-[.1em] text-ink/45">Message</p><p className="mt-1.5 whitespace-pre-wrap text-sm leading-6 text-ink/80">{inquiry.message}</p></div>}
+      {inquiry.message && <div className="mt-4 rounded-xl bg-paper p-4"><div className="flex items-center justify-between gap-2"><p className="text-[.62rem] font-bold uppercase tracking-[.1em] text-ink/45">Message{inquiry.page ? ` · sent from ${inquiry.page}` : ""}</p><a href={`https://translate.google.com/?sl=auto&tl=en&op=translate&text=${encodeURIComponent(inquiry.message)}`} target="_blank" rel="noreferrer" className="text-[.65rem] font-bold uppercase tracking-[.08em] !text-cinnamon">Translate</a></div><p className="mt-1.5 whitespace-pre-wrap text-sm leading-6 text-ink/80">{inquiry.message}</p></div>}
 
       {inquiry.type === "planner" && <div className="mt-4 grid grid-cols-2 gap-3 rounded-xl bg-paper p-4 text-sm lg:grid-cols-5">
         {[["Duration", inquiry.duration], ["Travellers", inquiry.group], ["Pace", inquiry.pace], ["Stay", inquiry.stay], ["Budget", inquiry.budget]].map(([label, value]) => <div key={label}><p className="text-[.62rem] font-bold uppercase tracking-[.1em] text-ink/45">{label === "Travellers" ? <span className="inline-flex items-center gap-1"><Users size={11}/>{label}</span> : label}</p><p className="mt-1 capitalize">{readable(value)}</p></div>)}

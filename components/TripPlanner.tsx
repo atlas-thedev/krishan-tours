@@ -65,7 +65,7 @@ const optionSets = {
 const usd = (value: number) => `US$${Math.round(value).toLocaleString("en-US")}`;
 
 export function TripPlanner({ budgetTiers = [1500, 2500, 4000] }: { budgetTiers?: number[] }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   // Stored value stays English (for the inquiry email); the label is translated.
   const [b1, b2, b3] = budgetTiers;
   const budgetOptions = [
@@ -123,7 +123,7 @@ export function TripPlanner({ budgetTiers = [1500, 2500, 4000] }: { budgetTiers?
       const response = await fetch("/api/inquiries", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "planner", ...form }),
+        body: JSON.stringify({ type: "planner", ...form, language: locale, page: window.location.pathname }),
       });
       const result = await response.json();
       if (!response.ok || !result.ok)

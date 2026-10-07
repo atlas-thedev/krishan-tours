@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { mailConfigured, sendMail } from "@/lib/mailer";
 import { NextRequest, NextResponse } from "next/server";
 import { saveInquiry } from "@/lib/inquiries-db";
+import { isLocale, localeNames } from "@/lib/i18n/config";
 import { clientIp, createRateLimiter, readJsonObject, RequestBodyError } from "@/lib/request-security";
 
 export const runtime = "nodejs";
@@ -58,6 +59,8 @@ export async function POST(request: NextRequest) {
     budget: text(raw.budget, 120),
     country: text(raw.country, 120),
     ip,
+    language: isLocale(text(raw.language, 8)) ? text(raw.language, 8) : "en",
+    page: text(raw.page, 200).startsWith("/") ? text(raw.page, 200) : "",
   };
 
   try {
@@ -72,7 +75,7 @@ export async function POST(request: NextRequest) {
     ["WhatsApp / phone", inquiry.phone], ["Travel month", inquiry.month], ["Timing", inquiry.timing],
     ["Duration", inquiry.duration], ["Travellers", inquiry.group], ["Interests", inquiry.interests.join(", ")],
     ["Pace", inquiry.pace], ["Accommodation", inquiry.stay], ["Budget", inquiry.budget],
-    ["Country", inquiry.country], ["Message", inquiry.message], ["Received", inquiry.receivedAt],
+    ["Country", inquiry.country], ["Language", `${localeNames[inquiry.language as keyof typeof localeNames] || inquiry.language} (${inquiry.language})`], ["Page", inquiry.page], ["Message", inquiry.message], ["Received", inquiry.receivedAt],
   ].filter(([, value]) => value);
 
   let delivered = false;
@@ -81,7 +84,7 @@ export async function POST(request: NextRequest) {
       await sendMail({
         to: destinationEmail,
         replyTo: inquiry.email,
-        subject: `${type === "planner" ? "Trip plan" : "Website inquiry"} from ${inquiry.name}`,
+        subject: `${inquiry.language !== "en" ? `[${inquiry.language.toUpperCase()}] ` : ""}${type === "planner" ? "Trip plan" : "Website inquiry"} from ${inquiry.name}`,
         text: rows.map(([label, value]) => `${label}: ${value}`).join("\n"),
         html: `<div style="font-family:Arial,sans-serif;max-width:680px"><h1 style="color:#17382b">New KrishanTours ${type === "planner" ? "trip plan" : "inquiry"}</h1>${rows.map(([label, value]) => `<p><strong>${escapeHtml(String(label))}:</strong><br>${escapeHtml(String(value))}</p>`).join("")}</div>`,
       });
