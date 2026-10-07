@@ -73,7 +73,7 @@ function protect(text, target) {
     return ` __KT${tokens.length - 1}__ `;
   });
   return { protectedText, restore(result) {
-    tokens.forEach((token, index) => { result = result.replace(new RegExp(`__KT${index}__`, "gi"), token); });
+    tokens.forEach((token, index) => { result = result.replace(new RegExp(`__[KК][TТ]${index}__`, "gi"), token); });
     return result.trim();
   }};
 }

@@ -1,13 +1,27 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Check, ChevronDown, LoaderCircle, RotateCcw, Search } from "lucide-react";
+import { ArrowRight, Check, ChevronDown, ExternalLink, LoaderCircle, MapPin, RotateCcw, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-export type EditablePrice = { key: string; group: string; label: string; unit: string; min: number; max?: number; defaultMin: number; defaultMax?: number; hasRange: boolean; updatedAt?: string };
+export type PriceUsage = { page: string; path: string; spots: string };
+export type EditablePrice = { key: string; group: string; label: string; unit: string; min: number; max?: number; defaultMin: number; defaultMax?: number; hasRange: boolean; updatedAt?: string; usage: PriceUsage[] };
 type Draft = Record<string, { min: string; max: string }>;
 
 const usd = (value: number) => `$${Math.round(value).toLocaleString("en-US")}`;
+const show = (min: string | number, max?: string | number) => { const a = Number(min); const b = max === "" || max == null ? undefined : Number(max); return !a ? "—" : b && b !== a ? `${usd(a)} – ${usd(b)}` : usd(a); };
+const when = (iso?: string) => iso ? new Date(iso.includes("T") ? iso : `${iso.replace(" ", "T")}Z`).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "";
+
+function UsageList({ usage, compact = false }: { usage: PriceUsage[]; compact?: boolean }) {
+  if (!usage.length) return null;
+  return <ul className={`flex flex-col gap-1.5 ${compact ? "" : "mt-2.5"}`}>
+    {usage.map((u) => <li key={u.path + u.spots}><a href={u.path} target="_blank" rel="noreferrer" className="group/u flex items-start gap-2 rounded-lg bg-[#f3efe6] px-2.5 py-2 text-xs leading-5 !text-ink/70 hover:bg-jungle/10">
+      <MapPin size={13} className="mt-0.5 shrink-0 text-cinnamon"/>
+      <span className="min-w-0 flex-1"><span className="font-semibold !text-jungle">{u.page}</span> <span className="text-ink/40">{u.path}</span><span className="block text-ink/60">{u.spots}</span></span>
+      <ExternalLink size={13} className="mt-0.5 shrink-0 text-ink/30 group-hover/u:text-jungle"/>
+    </a></li>)}
+  </ul>;
+}
 
 export function PriceEditor({ prices }: { prices: EditablePrice[] }) {
   const router = useRouter();
@@ -16,6 +30,7 @@ export function PriceEditor({ prices }: { prices: EditablePrice[] }) {
   const [filter, setFilter] = useState("");
   const [state, setState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [message, setMessage] = useState("");
+  const [published, setPublished] = useState<{ label: string; from: string; to: string; usage: PriceUsage[] }[]>([]);
 
   const changed = prices.filter((p) => draft[p.key].min !== initial[p.key].min || draft[p.key].max !== initial[p.key].max);
   const groups = useMemo(() => {
@@ -39,7 +54,9 @@ export function PriceEditor({ prices }: { prices: EditablePrice[] }) {
       const response = await fetch("/api/admin/prices", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ updates }) });
       const result = await response.json() as { ok: boolean; message?: string };
       if (!response.ok) throw new Error(result.message || "Could not save prices.");
-      setState("saved"); setMessage(`${updates.length} price${updates.length === 1 ? "" : "s"} updated on the website.`);
+      const pages = new Set(items.flatMap((p) => p.usage.map((u) => u.path)));
+      setPublished(items.map((p) => ({ label: `${p.group} · ${p.label}`, from: show(p.min, p.max), to: show(draft[p.key].min, draft[p.key].max), usage: p.usage })));
+      setState("saved"); setMessage(`${updates.length} price${updates.length === 1 ? "" : "s"} live on ${pages.size} page${pages.size === 1 ? "" : "s"} in all 12 languages.`);
       router.refresh();
     } catch (reason) { setState("error"); setMessage(reason instanceof Error ? reason.message : "Could not save prices."); }
   }
@@ -56,6 +73,15 @@ export function PriceEditor({ prices }: { prices: EditablePrice[] }) {
   return <div>
     <label className="relative block"><span className="sr-only">Find a price</span><Search size={16} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-ink/40"/><input value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Find a price, e.g. Galle, van, 10-day…" className="min-h-12 w-full rounded-xl border border-ink/15 bg-white pl-11 pr-4 text-sm outline-none focus:border-cinnamon"/></label>
 
+    {state === "saved" && published.length > 0 && <section className="mt-4 rounded-2xl border border-jungle/20 bg-white p-4 md:p-5">
+      <div className="flex items-start justify-between gap-3"><p className="flex items-center gap-2 text-sm font-semibold text-jungle"><Check size={16} className="text-green-700"/>Published — check it live:</p><button type="button" onClick={() => setPublished([])} className="text-xs text-ink/45">Hide</button></div>
+      <ul className="mt-3 grid gap-3 md:grid-cols-2">{published.map((item) => <li key={item.label} className="rounded-xl border border-ink/10 p-3">
+        <p className="text-xs font-semibold text-ink">{item.label}</p>
+        <p className="mt-1 flex items-center gap-1.5 text-sm"><span className="text-ink/45 line-through">{item.from}</span><ArrowRight size={13}/><span className="font-bold text-jungle">{item.to}</span></p>
+        <div className="mt-2"><UsageList usage={item.usage} compact/></div>
+      </li>)}</ul>
+    </section>}
+
     <div className="mt-4 grid gap-3">
       {groups.map(([group, items]) => <details key={group} open={!!filter || group === groups[0][0]} className="group overflow-hidden rounded-2xl border border-ink/10 bg-white">
         <summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-3 px-4 marker:hidden md:px-5 [&::-webkit-details-marker]:hidden">
@@ -71,7 +97,12 @@ export function PriceEditor({ prices }: { prices: EditablePrice[] }) {
             return <li key={p.key} className={`grid gap-3 p-4 md:grid-cols-[1fr_auto] md:items-center md:px-5 ${isChanged ? "bg-gold/10" : ""}`}>
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-ink">{p.label}</p>
-                <p className="mt-0.5 text-xs text-ink/50">{p.unit} · default {usd(p.defaultMin)}{p.defaultMax ? ` – ${usd(p.defaultMax)}` : ""}{custom ? " · custom price live" : ""}</p>
+                <p className="mt-0.5 text-xs text-ink/50">{p.unit} · default {show(p.defaultMin, p.defaultMax)}{custom && p.updatedAt ? ` · changed ${when(p.updatedAt)}` : ""}</p>
+                {isChanged && !bad && <p className="mt-2 inline-flex flex-wrap items-center gap-1.5 rounded-lg bg-gold/25 px-2.5 py-1 text-xs font-semibold text-jungle"><span className="text-ink/50 line-through">{show(initial[p.key].min, initial[p.key].max)}</span><ArrowRight size={12}/>{show(d.min, d.max)} <span className="font-normal text-ink/55">— not published yet</span></p>}
+                <details className="mt-2 [&_summary::-webkit-details-marker]:hidden" open={isChanged}>
+                  <summary className="inline-flex cursor-pointer list-none items-center gap-1 text-xs font-semibold text-cinnamon"><MapPin size={12}/>Shown on {p.usage.length} place{p.usage.length === 1 ? "" : "s"}</summary>
+                  <UsageList usage={p.usage}/>
+                </details>
               </div>
               <div className="flex items-center gap-2">
                 <label className="relative flex-1 md:w-28 md:flex-none"><span className="sr-only">{p.hasRange ? "From" : "Price"}</span><span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-ink/40">$</span><input inputMode="decimal" value={d.min} onChange={(e) => set(p.key, "min", e.target.value)} aria-invalid={bad} className={`min-h-12 w-full rounded-xl border bg-white pl-7 pr-2 text-base tabular-nums outline-none focus:border-cinnamon ${bad ? "border-red-500" : "border-ink/15"}`}/></label>
@@ -90,7 +121,7 @@ export function PriceEditor({ prices }: { prices: EditablePrice[] }) {
         <p role="status" className={`text-sm ${state === "error" ? "text-red-200" : "text-white/80"}`}>{message && state !== "idle" ? message : `${changed.length} unsaved change${changed.length === 1 ? "" : "s"}`}</p>
         <div className="flex gap-2">
           {changed.length > 0 && <button type="button" onClick={() => { setDraft(initial); setState("idle"); }} className="min-h-11 flex-1 rounded-xl border border-white/25 px-4 text-xs font-bold uppercase tracking-[.08em]">Discard</button>}
-          <button type="button" onClick={() => save()} disabled={!changed.length || state === "saving"} className="flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-gold px-5 text-xs font-bold uppercase tracking-[.08em] text-jungle disabled:opacity-50">{state === "saving" ? <LoaderCircle size={15} className="animate-spin"/> : <Check size={15}/>}Publish prices</button>
+          <button type="button" onClick={() => save()} disabled={!changed.length || state === "saving"} className="flex min-h-11 flex-1 items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-gold px-4 text-xs font-bold uppercase tracking-[.08em] text-jungle disabled:opacity-50">{state === "saving" ? <LoaderCircle size={15} className="animate-spin"/> : <Check size={15}/>}Publish prices</button>
         </div>
       </div>
     </div>

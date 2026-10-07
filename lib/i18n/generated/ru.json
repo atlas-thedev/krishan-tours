@@ -1,5 +1,7 @@
 {
   ", ": ",",
+  "{amount}+ per person": "{amount}+ на человека",
+  "{from} – {to} per person": "{from} – {to} на человека",
   "{name}: {days}-Day Sri Lanka Tour": "{name} : {days} - Однодневный тур по Шри-Ланке",
   "{place}, Sri Lanka: Things to Do & Tips": "{place}, Шри-Ланка: чем заняться и советы",
   "1 hr 15 mins": "1 час 15 минут",
@@ -1611,6 +1613,7 @@
   "Unable to send your request.": "Не удалось отправить ваш запрос.",
   "Unable to send your request. Please try WhatsApp instead.": "Не удалось отправить ваш запрос. Вместо этого попробуйте WhatsApp.",
   "Unawatuna": "Унаватуна",
+  "Under {amount} per person": "Менее {amount} на человека",
   "Under US$1,500 pp": "Менее 1500 долларов США на человека",
   "unforgettable Sri Lanka.": "незабываемая Шри-Ланка.",
   "Unhurried final beach days": "Неспешные последние пляжные дни",

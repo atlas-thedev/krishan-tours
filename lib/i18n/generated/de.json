@@ -1,5 +1,7 @@
 {
   ", ": ",",
+  "{amount}+ per person": "{amount}+ pro Person",
+  "{from} – {to} per person": "{from} – {to} pro Person",
   "{name}: {days}-Day Sri Lanka Tour": "{name}: {days}-Tagestour Sri Lanka",
   "{place}, Sri Lanka: Things to Do & Tips": "{place}, Sri Lanka: Unternehmungen und Tipps",
   "$105": "105 $",
@@ -1671,6 +1673,7 @@
   "Unable to send your request.": "Ihre Anfrage konnte nicht gesendet werden.",
   "Unable to send your request. Please try WhatsApp instead.": "Ihre Anfrage konnte nicht gesendet werden. Bitte versuchen Sie es stattdessen mit WhatsApp.",
   "Unawatuna": "Unawatuna",
+  "Under {amount} per person": "Unter {amount} pro Person",
   "Under US$1,500 pp": "Unter 1.500 US-Dollar pro Person",
   "unforgettable Sri Lanka.": "unvergesslich Sri Lanka.",
   "Unhurried final beach days": "Ruhige letzte Strandtage",

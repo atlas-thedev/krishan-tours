@@ -1,5 +1,7 @@
 {
   ", ": ",",
+  "{amount}+ per person": "{amount}+ 每人",
+  "{from} – {to} per person": "每人{from} – {to}",
   "{name}: {days}-Day Sri Lanka Tour": "{name} : {days} - 斯里兰卡一日游",
   "{place}, Sri Lanka: Things to Do & Tips": "{place}，斯里兰卡：要做的事情和小贴士",
   "1 hr 15 mins": "1小时15分钟",
@@ -1611,6 +1613,7 @@
   "Unable to send your request.": "无法发送您的请求。",
   "Unable to send your request. Please try WhatsApp instead.": "无法发送您的请求。请尝试使用 WhatsApp 代替。",
   "Unawatuna": "乌纳瓦图纳",
+  "Under {amount} per person": "每人{amount}以下",
   "Under US$1,500 pp": "每人低于 1,500 美元",
   "unforgettable Sri Lanka.": "难忘的斯里兰卡。",
   "Unhurried final beach days": "悠闲的最后海滩日子",

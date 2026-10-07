@@ -1,5 +1,7 @@
 {
   ", ": ",",
+  "{amount}+ per person": "{amount}+ na osobu",
+  "{from} – {to} per person": "{from} – {to} na osobu",
   "{name}: {days}-Day Sri Lanka Tour": "{name} : {days}-denní Sri Lanka prohlídka",
   "{place}, Sri Lanka: Things to Do & Tips": "{place}, Sri Lanka : Co dělat a tipy",
   "$105": "105 dolarů",
@@ -1671,6 +1673,7 @@
   "Unable to send your request.": "Vaši žádost nelze odeslat.",
   "Unable to send your request. Please try WhatsApp instead.": "Vaši žádost nelze odeslat. Zkuste místo toho WhatsApp.",
   "Unawatuna": "Unawatuna",
+  "Under {amount} per person": "Méně než {amount} na osobu",
   "Under US$1,500 pp": "Méně než 1 500 USD na stranu",
   "unforgettable Sri Lanka.": "nezapomenutelný Sri Lanka.",
   "Unhurried final beach days": "Neuspěchané poslední plážové dny",

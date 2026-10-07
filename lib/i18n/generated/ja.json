@@ -1,5 +1,7 @@
 {
   ", ": "、",
+  "{amount}+ per person": "1名あたり{amount}以上",
+  "{from} – {to} per person": "1 人あたり{from} – {to}",
   "{name}: {days}-Day Sri Lanka Tour": "{name} : {days} - スリランカ 1 日ツアー",
   "{place}, Sri Lanka: Things to Do & Tips": "{place} 、スリランカ: やるべきこととヒント",
   "1 hr 15 mins": "1時間15分",
@@ -1611,6 +1613,7 @@
   "Unable to send your request.": "リクエストを送信できません。",
   "Unable to send your request. Please try WhatsApp instead.": "リクエストを送信できません。代わりに WhatsApp を試してください。",
   "Unawatuna": "ウナワトゥナ",
+  "Under {amount} per person": "1 人あたり{amount}未満",
   "Under US$1,500 pp": "1 人あたり 1,500 米ドル未満",
   "unforgettable Sri Lanka.": "忘れられないスリランカ。",
   "Unhurried final beach days": "ゆったりとした最後のビーチデイズ",

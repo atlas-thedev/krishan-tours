@@ -48,7 +48,51 @@ export const priceDefinitions: PriceDefinition[] = [
   ...transfer("sigiriya", "Sigiriya / Dambulla", 95, 115),
   ...transfer("ella", "Ella / Nuwara Eliya", 135, 160),
   ...transfer("arugam", "Arugam Bay", 175, 210),
+
+  // Budget brackets offered in the "Plan your trip" form (per person, whole trip).
+  { key: "planner.budget1", group: "Trip planner budget options", label: "Budget bracket 1 (\"Under $X\")", unit: "per person", min: 1500 },
+  { key: "planner.budget2", group: "Trip planner budget options", label: "Budget bracket 2", unit: "per person", min: 2500 },
+  { key: "planner.budget3", group: "Trip planner budget options", label: "Budget bracket 3 (\"$X+\")", unit: "per person", min: 4000 },
 ];
+
+export type PriceUsage = { page: string; path: string; spots: string };
+
+const driverPage = "/sri-lanka-private-driver";
+const pkgPage = { page: "Tour packages list", path: "/sri-lanka-tour-packages", spots: "“From $X / person” on the package card + Google price data" };
+const tourPage = (path: string, name: string, kind: "driver" | "package"): PriceUsage[] => kind === "driver"
+  ? [{ page: name, path, spots: "“Driver & vehicle only” price card + FAQ answer" }]
+  : [{ page: name, path, spots: "“Complete package” price card, FAQ answer + Google price data (from price)" }, pkgPage];
+
+/** Where every price appears on the public site (all 12 languages). Shown in /admin/prices. */
+export const priceUsage: Record<string, PriceUsage[]> = {
+  "driver.sedan": [
+    { page: "Private driver", path: driverPage, spots: "Google title (“from $X/day”), sedan price card, FAQ answer + Google price data (lowest price)" },
+    { page: "Private tours", path: "/sri-lanka-private-tours", spots: "“Driver only” option (from price)" },
+  ],
+  "driver.van": [
+    { page: "Private driver", path: driverPage, spots: "Van price card, FAQ answer + Google price data (highest price)" },
+    { page: "Private tours", path: "/sri-lanka-private-tours", spots: "“Driver only” option (up-to price)" },
+  ],
+  "driver.tip": [{ page: "Private driver", path: driverPage, spots: "FAQ answer about tipping" }],
+  "privateTours.boutique": [{ page: "Private tours", path: "/sri-lanka-private-tours", spots: "Boutique tour price card" }],
+  "privateTours.luxury": [{ page: "Private tours", path: "/sri-lanka-private-tours", spots: "Luxury heritage tour price card" }],
+  "ske.driver": tourPage("/sigiriya-kandy-ella-tour", "Sigiriya, Kandy & Ella tour", "driver"),
+  "ske.package": tourPage("/sigiriya-kandy-ella-tour", "Sigiriya, Kandy & Ella tour", "package"),
+  "tour7.driver": tourPage("/sri-lanka-7-day-tour", "7-day tour", "driver"),
+  "tour7.package": tourPage("/sri-lanka-7-day-tour", "7-day tour", "package"),
+  "tour10.driver": tourPage("/sri-lanka-10-day-tour", "10-day tour", "driver"),
+  "tour10.package": tourPage("/sri-lanka-10-day-tour", "10-day tour", "package"),
+  "tour14.driver": tourPage("/sri-lanka-14-day-tour", "14-day tour", "driver"),
+  "tour14.package": tourPage("/sri-lanka-14-day-tour", "14-day tour", "package"),
+  "planner.budget1": [{ page: "Plan your trip form", path: "/plan-your-trip", spots: "Budget step: “Under $X” and “$X – next” choices" }],
+  "planner.budget2": [{ page: "Plan your trip form", path: "/plan-your-trip", spots: "Budget step: middle brackets" }],
+  "planner.budget3": [{ page: "Plan your trip form", path: "/plan-your-trip", spots: "Budget step: “$X+” choice" }],
+};
+for (const definition of priceDefinitions) {
+  if (definition.key.startsWith("transfer.")) {
+    priceUsage[definition.key] = [{ page: "Airport transfers", path: "/airport-transfer-sri-lanka", spots: `Rates table → ${definition.label.split(" · ")[0]} row, ${definition.key.endsWith(".van") ? "van" : "sedan"} column` }];
+  }
+}
 
 /** Trips that appear in public listings and can be pinned, re-ordered or priced from /admin/trips. */
 export const landingPackages = [
