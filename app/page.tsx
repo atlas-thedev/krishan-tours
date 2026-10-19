@@ -247,14 +247,14 @@ export default async function HomePage() {
       <section className="overflow-hidden bg-jungle py-24 text-white md:py-36">
         <div className="shell grid items-center gap-12 lg:grid-cols-[1.1fr_.9fr] lg:gap-24">
           <Reveal>
-            <div className="relative aspect-[4/5]">
+            <div className="relative aspect-[3/4]">
               <Image
-                src="/images/krishan.webp"
+                src="/images/krishan-roadside.webp"
                 alt={t(
                   "Krishan, founder and licensed private driver-guide at Krishan Tours Sri Lanka",
                 )}
                 fill
-                sizes="(max-width: 1024px) 125vw, 70vw"
+                sizes="(max-width: 1023px) calc(100vw - 48px), 50vw"
                 className="object-cover"
               />
               <div className="absolute -bottom-7 -right-4 bg-gold p-6 text-jungle md:-right-10 md:p-8">
