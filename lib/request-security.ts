@@ -42,3 +42,13 @@ export async function readJsonObject(request: NextRequest, maxBytes = 64_000) {
 export class RequestBodyError extends Error {
   constructor(public reason: "too-large" | "invalid") { super(reason); }
 }
+
+// Compare the browser origin with the actual request host. Next's internal URL
+// can use localhost behind a reverse proxy; Nginx supplies the original scheme.
+export function sameOrigin(request: NextRequest) {
+  try {
+    const origin = new URL(request.headers.get("origin") || "");
+    const protocol = (request.headers.get("x-forwarded-proto") || request.nextUrl.protocol.replace(":", "")).split(",")[0].trim();
+    return origin.host === request.headers.get("host") && origin.protocol === protocol + ":" && ["http", "https"].includes(protocol);
+  } catch { return false; }
+}

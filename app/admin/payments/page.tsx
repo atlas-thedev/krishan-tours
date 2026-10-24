@@ -1,0 +1,12 @@
+import type {Metadata} from "next";
+import {redirect} from "next/navigation";
+import {AdminShell} from "@/components/admin/AdminShell";
+import {PaymentSettings} from "@/components/admin/PaymentSettings";
+import {isAdmin} from "@/lib/admin-auth";
+import {publicSettings,listPaymentOrders} from "@/lib/payments";
+export const metadata:Metadata={title:"Payments · Admin",robots:{index:false,follow:false}};
+export const dynamic="force-dynamic";
+export default async function AdminPayments(){
+ if(!(await isAdmin()))redirect("/admin/login");const settings=publicSettings(),orders=listPaymentOrders();
+ return <AdminShell active="payments" title="Payments" subtitle="PayHere credentials, sandbox testing and verified booking payments. Public checkout remains behind the browser unlock gate."><PaymentSettings initial={settings}/><section className="mt-10"><h2 className="display text-4xl !text-jungle">Recent payments</h2><p className="mt-2 text-sm !text-ink/60">Latest 100 attempts. Sandbox transactions never represent real money. Match the amount to the booking before confirming its balance.</p><div className="mt-5 space-y-3">{orders.length?orders.map(o=><article key={o.id} className="rounded-xl border border-ink/10 bg-paper p-4"><div className="flex flex-wrap items-start justify-between gap-3"><div className="min-w-0"><p className="break-words text-base font-semibold !text-jungle">{o.booking_reference}</p><p className="mt-1 break-all text-xs !text-ink/50">{o.id}</p></div><strong className="text-lg !text-jungle">{o.currency} {(o.amount_cents/100).toFixed(2)}</strong></div><div className="mt-4 flex flex-wrap items-center gap-3 text-xs"><span className={`rounded-full px-3 py-1 font-bold uppercase ${o.mode==="sandbox"?"bg-gold/20 !text-ink":"bg-jungle !text-white"}`}>{o.mode}</span><span className={`rounded-full px-3 py-1 font-semibold ${o.status==="paid"?"bg-green-100 text-green-900":"bg-ink/5 !text-ink"}`}>{o.status.replaceAll("_"," ")}</span><time dateTime={o.created_at} className="!text-ink/60">{new Date(o.created_at).toLocaleString("en-GB",{timeZone:"Asia/Colombo"})} Sri Lanka</time></div>{o.provider_payment_id&&<p className="mt-3 break-all text-xs !text-ink/60">PayHere payment ID: {o.provider_payment_id}</p>}</article>):<div className="rounded-xl border border-dashed border-ink/20 p-8 text-sm !text-ink/60">No payment attempts yet. Add sandbox credentials above to test the full checkout.</div>}</div></section></AdminShell>;
+}

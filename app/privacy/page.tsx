@@ -10,7 +10,7 @@ export default async function PrivacyPage() {
   return (
     <Legal
       title={t("Privacy policy")}
-      updated={t("Last updated: 7 September 2026")}
+      updated={t("Last updated: 24 October 2026")}
     >
       <Section title={t("Who controls your data")}>
         <p>
@@ -48,6 +48,9 @@ export default async function PrivacyPage() {
             "Inquiries are stored in a protected database on our server and may be sent through our configured email provider so our team can respond. Service providers process information only to provide hosting, email, security or analytics services. Inquiry IP addresses are removed after 90 days. Inquiry records are deleted after two years unless they are needed for an active booking, a legal obligation or a dispute.",
           )}
         </p>
+      </Section>
+      <Section title={t("Online booking payments")}>
+        <p>{t("When you choose to pay for a booking, your name, email, phone and billing address are sent to PayHere to process that payment. We keep the booking reference, amount, currency, payment status and transaction identifiers so we can reconcile the payment and handle disputes. Card numbers and security codes are entered on PayHere, not on our website, and are not stored in our payment records. Payment records are kept as needed for booking, accounting, legal and dispute-handling obligations.")}</p>
       </Section>
       <Section title={t("Your choices and rights")}>
         <p>

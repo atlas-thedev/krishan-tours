@@ -77,3 +77,6 @@ html:is([lang="ja"], [lang="zh"]) h2 { line-height: 1.25 !important; letter-spac
 /* Admin: let Tailwind utilities win over the unlayered resets above. */
 .admin-surface :where(button, input, select, textarea) { font: revert-layer; }
 .admin-surface a { color: revert-layer; }
+
+/* Match the existing nav typography despite the global native-control font reset. */
+.payment-nav-control { font-size: .65rem; font-weight: 700; line-height: 1.5; }

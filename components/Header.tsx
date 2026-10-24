@@ -7,6 +7,7 @@ import { Menu, X, ArrowUpRight, ChevronDown } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { usePathname } from "next/navigation";
 import { Logo } from "./Logo";
+import { PaymentNav } from "./PaymentNav";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useI18n } from "./I18nProvider";
 import { destinations } from "@/data/destinations";
@@ -72,7 +73,7 @@ export function Header() {
           <Logo light={!dark} />
           <nav
             aria-label={t("Primary navigation")}
-            className="hidden items-center gap-7 xl:flex"
+            className="hidden items-center gap-4 xl:flex"
           >
             {nav.map((item) => (
               <div
@@ -93,6 +94,7 @@ export function Header() {
                 </Link>
               </div>
             ))}
+            <PaymentNav />
           </nav>
           <div className="flex items-center gap-2 sm:gap-3">
             <LanguageSwitcher light={!dark} />
@@ -254,6 +256,7 @@ export function Header() {
                     <span className="text-[.6rem] text-gold">0{index + 1}</span>
                   </Link>
                 ))}
+                <PaymentNav mobile onNavigate={() => setMobile(false)} />
               </nav>
               <div className="relative hidden aspect-[4/5] overflow-hidden md:block">
                 <Image
