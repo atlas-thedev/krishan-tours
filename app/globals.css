@@ -85,4 +85,8 @@ html:is([lang="ja"], [lang="zh"]) h2 { line-height: 1.25 !important; letter-spac
 .admin-surface a { color: revert-layer; }
 
 /* Match the existing nav typography despite the global native-control font reset. */
-.payment-nav-control { font-size: .65rem; font-weight: 700; line-height: 1.5; }
+.payment-nav-control { display: inline-flex; min-height: 48px; align-items: center; justify-content: center; gap: 8px; padding: 12px 16px; border: 1px solid var(--gold); background: var(--gold); color: var(--jungle); font-size: 14px; font-weight: 800; line-height: 1.5; letter-spacing: .035em; text-transform: uppercase; white-space: nowrap; transition: background .2s var(--ease), border-color .2s var(--ease), transform .2s var(--ease); }
+.payment-nav-control:not(:disabled):hover { background: #e8c779; border-color: #e8c779; transform: translateY(-1px); }
+.payment-nav-control:disabled { opacity: 1; cursor: not-allowed; }
+.payment-nav-control:focus-visible { outline: 2px solid var(--jungle); outline-offset: 4px; box-shadow: 0 0 0 2px white; }
+.payment-nav-mobile { width: 100%; min-height: 56px; margin-top: 16px; justify-content: space-between; white-space: normal; text-align: start; }
