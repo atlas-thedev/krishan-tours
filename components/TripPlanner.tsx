@@ -59,17 +59,22 @@ const optionSets = {
   ],
   pace: ["Relaxed", "Balanced", "See everything"],
   stay: ["Comfort", "Boutique", "Luxury", "A mix"],
-  budget: [
-    "Under US$1,500 pp",
-    "US$1,500–2,500 pp",
-    "US$2,500–4,000 pp",
-    "US$4,000+ pp",
-    "Not sure yet",
-  ],
+  budget: [] as string[], // built from the admin-editable brackets, see budgetOptions()
 };
 
-export function TripPlanner() {
-  const { t } = useI18n();
+const usd = (value: number) => `US$${Math.round(value).toLocaleString("en-US")}`;
+
+export function TripPlanner({ budgetTiers = [1500, 2500, 4000] }: { budgetTiers?: number[] }) {
+  const { t, locale } = useI18n();
+  // Stored value stays English (for the inquiry email); the label is translated.
+  const [b1, b2, b3] = budgetTiers;
+  const budgetOptions = [
+    { value: `Under ${usd(b1)} pp`, label: t("Under {amount} per person", { amount: usd(b1) }) },
+    { value: `${usd(b1)}–${usd(b2)} pp`, label: t("{from} – {to} per person", { from: usd(b1), to: usd(b2) }) },
+    { value: `${usd(b2)}–${usd(b3)} pp`, label: t("{from} – {to} per person", { from: usd(b2), to: usd(b3) }) },
+    { value: `${usd(b3)}+ pp`, label: t("{amount}+ per person", { amount: usd(b3) }) },
+    { value: "Not sure yet", label: t("Not sure yet") },
+  ];
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<FormState>(initial);
   const [sent, setSent] = useState(false);
@@ -118,7 +123,7 @@ export function TripPlanner() {
       const response = await fetch("/api/inquiries", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "planner", ...form }),
+        body: JSON.stringify({ type: "planner", ...form, language: locale, page: window.location.pathname }),
       });
       const result = await response.json();
       if (!response.ok || !result.ok)
@@ -208,8 +213,8 @@ export function TripPlanner() {
             <div
               className={`mt-9 grid gap-3 ${step === 3 ? "grid-cols-2 md:grid-cols-3" : "sm:grid-cols-2"}`}
             >
-              {(optionSets[key as keyof typeof optionSets] || []).map(
-                (value) => {
+              {(key === "budget" ? budgetOptions : (optionSets[key as keyof typeof optionSets] || []).map((value) => ({ value, label: t(value) }))).map(
+                ({ value, label }) => {
                   const chosen =
                     key === "interests"
                       ? form.interests.includes(value)
@@ -221,7 +226,7 @@ export function TripPlanner() {
                       onClick={() => select(value)}
                       className={`flex min-h-16 items-center justify-between border p-4 text-left text-sm transition-all ${chosen ? "border-jungle bg-jungle text-white" : "border-black/15 hover:border-jungle"}`}
                     >
-                      <span>{t(value)}</span>
+                      <span>{label}</span>
                       {chosen && <Check size={16} />}
                     </button>
                   );

@@ -3,7 +3,10 @@ server {
     listen [::]:80;
     server_name krishantours.com www.krishantours.com;
 
-    return 301 https://krishantours.com$request_uri;
+    # Let's Encrypt HTTP-01 challenges (see deploy/renew-cert.sh).
+    location ^~ /.well-known/acme-challenge/ { root /var/www/certbot; default_type text/plain; }
+
+    location / { return 301 https://krishantours.com$request_uri; }
 }
 
 server {
@@ -11,10 +14,12 @@ server {
     listen [::]:443 ssl;
     server_name www.krishantours.com;
 
-    ssl_certificate /etc/letsencrypt/live/krishantours.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/krishantours.com/privkey.pem;
-    include /etc/letsencrypt/options-ssl-nginx.conf;
-    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+    # Symlinks: self-signed until DNS points here, then Let's Encrypt (deploy/renew-cert.sh).
+    ssl_certificate /etc/nginx/ssl/krishantours.com/fullchain.pem;
+    ssl_certificate_key /etc/nginx/ssl/krishantours.com/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 1d;
 
     return 301 https://krishantours.com$request_uri;
 }
@@ -24,10 +29,12 @@ server {
     listen [::]:443 ssl;
     server_name krishantours.com;
 
-    ssl_certificate /etc/letsencrypt/live/krishantours.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/krishantours.com/privkey.pem;
-    include /etc/letsencrypt/options-ssl-nginx.conf;
-    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+    # Symlinks: self-signed until DNS points here, then Let's Encrypt (deploy/renew-cert.sh).
+    ssl_certificate /etc/nginx/ssl/krishantours.com/fullchain.pem;
+    ssl_certificate_key /etc/nginx/ssl/krishantours.com/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 1d;
 
     client_max_body_size 1M;
 
@@ -57,6 +64,18 @@ server {
     set_real_ip_from 2c0f:f248::/32;
     real_ip_header CF-Connecting-IP;
     real_ip_recursive on;
+
+    location ^~ /.well-known/acme-challenge/ { root /var/www/certbot; default_type text/plain; }
+
+    gzip on;
+    gzip_types text/plain text/css application/javascript application/json image/svg+xml application/xml;
+
+    location /_next/static/ {
+        proxy_pass http://127.0.0.1:3417;
+        proxy_set_header Host $host;
+        expires 1y;
+        add_header Cache-Control "public, max-age=31536000, immutable";
+    }
 
     location / {
         proxy_pass http://127.0.0.1:3417;

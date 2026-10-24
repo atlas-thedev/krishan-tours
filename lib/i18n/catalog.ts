@@ -9,8 +9,16 @@ import cs from "./generated/cs.json";
 import fr from "./generated/fr.json";
 import pl from "./generated/pl.json";
 import de from "./generated/de.json";
+import es from "./generated/es.json";
+import it from "./generated/it.json";
+import nl from "./generated/nl.json";
+import ru from "./generated/ru.json";
+import zh from "./generated/zh.json";
+import ja from "./generated/ja.json";
+import { seoOverrides } from "./seo-overrides";
 
-const catalogs: Record<Exclude<Locale, "en">, Catalog> = { ar, cs, fr, pl, de };
+const merge = (locale: Exclude<Locale, "en">, generated: Catalog): Catalog => ({ ...generated, ...seoOverrides[locale] });
+const catalogs: Record<Exclude<Locale, "en">, Catalog> = { ar: merge("ar", ar), cs: merge("cs", cs), fr: merge("fr", fr), pl: merge("pl", pl), de: merge("de", de), es: merge("es", es), it: merge("it", it), nl: merge("nl", nl), ru: merge("ru", ru), zh: merge("zh", zh), ja: merge("ja", ja) };
 
 export function getCatalog(locale: Locale): Catalog {
   return locale === "en" ? {} : catalogs[locale];

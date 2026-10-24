@@ -8,6 +8,7 @@ import { tours } from "@/data/tours";
 import { PageHero } from "@/components/PageHero";
 import { TourCard } from "@/components/TourCard";
 import { SectionHeading } from "@/components/SectionHeading";
+import { JsonLd, breadcrumbSchema } from "@/components/JsonLd";
 import { getI18n } from "@/lib/i18n/server";
 import { localizedMetadata } from "@/lib/i18n/metadata";
 
@@ -23,17 +24,18 @@ export async function generateMetadata({
   const e = getExperience(slug);
   if (!e) return {};
   const {t}=await getI18n();
-  return localizedMetadata({title:`${t(e.name)} — ${t("Experiences in Sri Lanka")}`,description:t(e.intro),path:`/experiences/${e.slug}`,image:e.image});
+  return localizedMetadata({title:t("Sri Lanka {experience} Experiences",{experience:t(e.name)}),description:t(e.intro),path:`/experiences/${e.slug}`,image:e.image});
 }
 export default async function ExperiencePage({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  const { t } = await getI18n();
+  const { t, locale } = await getI18n();
   const { slug } = await params;
   const e = getExperience(slug);
   if (!e) notFound();
+  const breadcrumbs = breadcrumbSchema([[t("Experiences"), "/experiences"], [t(e.name), `/experiences/${e.slug}`]], locale, t("Home"));
   const index = experiences.findIndex((x) => x.slug === slug);
   const related = tours
     .filter((tour) =>
@@ -135,6 +137,7 @@ export default async function ExperiencePage({
           </div>
         </div>
       </section>
+      <JsonLd data={breadcrumbs} />
     </>
   );
 }

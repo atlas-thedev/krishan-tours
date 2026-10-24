@@ -18,18 +18,19 @@ import { Reveal } from "@/components/Reveal";
 import { FAQ } from "@/components/FAQ";
 import { commonFaqs } from "@/data/faqs";
 import { destinations } from "@/data/destinations";
-import { tours } from "@/data/tours";
+import { getListedTours } from "@/lib/content-db";
 import { stories } from "@/data/stories";
 import { getI18n } from "@/lib/i18n/server";
 import { localizedMetadata } from "@/lib/i18n/metadata";
 
 export const generateMetadata = (): Promise<Metadata> =>
   localizedMetadata({
-    title: "Krishan Tours Sri Lanka | Private Driver & Custom Sri Lanka Tours",
+    title: "Sri Lanka Private Driver & Tailor-Made Tours | Krishan Tours",
     description:
-      "Krishan Tours Sri Lanka is a Panadura-based private tour and driver service offering custom trips throughout Sri Lanka. Personal driver-guides, tailor-made itineraries, and reliable airport transfers.",
+      "Private driver-guides, tailor-made Sri Lanka tours and 24/7 airport transfers from Panadura. Fixed daily rates, no shopping commissions. Plan on WhatsApp.",
     path: "/",
     image: "/images/og-image.jpg",
+    absoluteTitle: true,
   });
 
 const homeFaqs = [
@@ -48,6 +49,7 @@ const homeFaqs = [
 
 export default async function HomePage() {
   const { t } = await getI18n();
+  const listedTours = getListedTours();
   const faqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -146,7 +148,7 @@ export default async function HomePage() {
             }
           />
           <div className="mt-12">
-            {tours.slice(0, 3).map((tour, index) => (
+            {listedTours.slice(0, 3).map((tour, index) => (
               <TourCard key={tour.slug} tour={tour} index={index} />
             ))}
           </div>
@@ -245,14 +247,14 @@ export default async function HomePage() {
       <section className="overflow-hidden bg-jungle py-24 text-white md:py-36">
         <div className="shell grid items-center gap-12 lg:grid-cols-[1.1fr_.9fr] lg:gap-24">
           <Reveal>
-            <div className="relative aspect-[4/5]">
+            <div className="relative aspect-[3/4]">
               <Image
-                src="/images/krishan.webp"
+                src="/images/krishan-roadside.webp"
                 alt={t(
                   "Krishan, founder and licensed private driver-guide at Krishan Tours Sri Lanka",
                 )}
                 fill
-                sizes="(max-width: 1024px) 125vw, 70vw"
+                sizes="(max-width: 1023px) calc(100vw - 48px), 50vw"
                 className="object-cover"
               />
               <div className="absolute -bottom-7 -right-4 bg-gold p-6 text-jungle md:-right-10 md:p-8">
