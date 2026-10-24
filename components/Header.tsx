@@ -100,8 +100,8 @@ export function Header() {
             <LanguageSwitcher light={!dark} />
             <Link
               href="/plan-your-trip"
-              style={dark ? { color: "#fff" } : undefined}
-              className={`hidden min-h-10 sm:min-h-11 items-center border px-4 text-[.68rem] font-bold uppercase tracking-[.12em] transition-colors lg:flex ${
+              data-solid={Boolean(dark)}
+              className={`header-journey hidden min-h-10 sm:min-h-11 items-center border px-4 text-[.68rem] font-bold uppercase tracking-[.12em] transition-colors lg:flex ${
                 dark
                   ? "border-jungle bg-jungle hover:border-cinnamon hover:bg-cinnamon"
                   : "border-white/60 hover:bg-white hover:text-jungle"
