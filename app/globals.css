@@ -54,6 +54,12 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .btn-outline { background: transparent; border: 1px solid currentColor; }
 .btn-outline:hover { background: var(--paper); color: var(--jungle); border-color: var(--paper); }
 
+/* Keep the header CTA legible: the unlayered anchor reset overrides utility colors. */
+.header-journey { color: white; }
+.header-journey:hover { color: var(--jungle); }
+.header-journey[data-solid="true"]:hover { color: white; }
+.header-journey:focus-visible { outline-color: currentColor; }
+
 .media-cover { position: relative; overflow: hidden; background: #d9d3c8; }
 .media-cover img { object-fit: cover; transition: transform .9s var(--ease); }
 .media-cover:hover img { transform: scale(1.035); }
