@@ -1,38 +1,74 @@
 import type { Metadata } from "next";
-import { locales, localizeHref, type Locale } from "./config";
+import { defaultLocale, locales, localizeHref, type Locale } from "./config";
 import { getI18n } from "./server";
 import { siteConfig } from "@/lib/site";
 
-const ogLocaleMap: Record<Locale, string> = {
+export const ogLocaleMap: Record<Locale, string> = {
   en: "en_GB",
   ar: "ar_AE",
   cs: "cs_CZ",
   fr: "fr_FR",
   pl: "pl_PL",
   de: "de_DE",
+  es: "es_ES",
+  it: "it_IT",
+  nl: "nl_NL",
+  ru: "ru_RU",
+  zh: "zh_CN",
+  ja: "ja_JP",
 };
+
+/** Absolute URL for a locale-aware path. */
+export function absoluteUrl(path: string, locale: Locale = defaultLocale) {
+  const localized = localizeHref(path, locale);
+  // Next.js renders the root canonical without a trailing slash; keep sitemap and hreflang identical.
+  if (localized === "/") return siteConfig.url;
+  return `${siteConfig.url}${localized.startsWith("/") ? "" : "/"}${localized}`;
+}
+
+/** hreflang map including x-default (English), shared by page metadata and the sitemap. */
+export function languageAlternates(path: string) {
+  return {
+    ...Object.fromEntries(locales.map((item) => [item, absoluteUrl(path, item)])),
+    "x-default": absoluteUrl(path, defaultLocale),
+  };
+}
+
+/** Trim a description to Google's ~160 character snippet limit on a word boundary. */
+export function clip(text: string | undefined, max = 158) {
+  if (!text) return text;
+  const clean = text.replace(/\s+/g, " ").trim();
+  if (clean.length <= max) return clean;
+  const cut = clean.slice(0, max - 1);
+  return `${cut.slice(0, cut.lastIndexOf(" ")).replace(/[,;:–—-]$/, "")}…`;
+}
 
 export async function localizedMetadata({
   title,
   description,
   path,
   image,
+  absoluteTitle = false,
+  type = "website",
+  values,
 }: {
   title: string;
   description?: string;
   path: string;
   image?: string;
+  /** Skip the "| Krishan Tours" template (used for the home page). */
+  absoluteTitle?: boolean;
+  type?: "website" | "article";
+  /** Placeholder values (e.g. live prices) for the title and description. */
+  values?: Record<string, string | number>;
 }): Promise<Metadata> {
   const { locale, t } = await getI18n();
-  const canonicalPath = localizeHref(path, locale);
-  const canonicalUrl = `${siteConfig.url}${canonicalPath.startsWith("/") ? "" : "/"}${canonicalPath === "/" ? "" : canonicalPath}`;
-  const translatedTitle = t(title);
-  const translatedDesc = description ? t(description) : undefined;
+  const canonicalUrl = absoluteUrl(path, locale);
+  const translatedTitle = t(title, values);
+  const translatedDesc = clip(description ? t(description, values) : undefined);
 
-  // Resolve compatible Open Graph and Twitter image (JPEG/PNG for WhatsApp/iMessage compatibility)
-  const defaultOgImage = `${siteConfig.url}/images/og-image.jpg`;
-  let resolvedImageUrl = defaultOgImage;
-
+  // Open Graph / Twitter images must be JPEG/PNG for WhatsApp and iMessage previews.
+  let resolvedImageUrl = `${siteConfig.url}/images/og-image.jpg`;
   if (image) {
     const safeImage = image.endsWith(".webp") ? image.replace(/\.webp$/, ".jpg") : image;
     resolvedImageUrl = safeImage.startsWith("http")
@@ -50,11 +86,11 @@ export async function localizedMetadata({
   };
 
   return {
-    title: translatedTitle,
+    title: absoluteTitle ? { absolute: translatedTitle } : translatedTitle,
     description: translatedDesc,
     alternates: {
       canonical: canonicalUrl,
-      languages: Object.fromEntries(locales.map((item) => [item, `${siteConfig.url}${localizeHref(path, item)}`])),
+      languages: languageAlternates(path),
     },
     openGraph: {
       title: translatedTitle,
@@ -62,7 +98,8 @@ export async function localizedMetadata({
       url: canonicalUrl,
       siteName: siteConfig.name,
       locale: ogLocaleMap[locale] || "en_GB",
-      type: "website",
+      alternateLocale: locales.filter((item) => item !== locale).map((item) => ogLocaleMap[item]),
+      type,
       images: [ogImageObj],
     },
     twitter: {

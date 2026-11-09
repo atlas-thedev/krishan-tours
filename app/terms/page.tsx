@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { getI18n } from "@/lib/i18n/server";
 import { localizedMetadata } from "@/lib/i18n/metadata";
 
-export const generateMetadata = (): Promise<Metadata> => localizedMetadata({ title: "Terms & Conditions", path: "/terms" });
+export const generateMetadata = (): Promise<Metadata> => localizedMetadata({ title: "Terms & Conditions", description: "Booking, payment, cancellation and travel terms for private tours, drivers and airport transfers with Krishan Tours Sri Lanka.", path: "/terms" });
 
 const sections = [
   [

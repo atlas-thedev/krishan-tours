@@ -15,12 +15,15 @@ import { SectionHeading } from "@/components/SectionHeading";
 import { siteConfig, whatsappUrl } from "@/lib/site";
 import { getI18n } from "@/lib/i18n/server";
 import { localizedMetadata } from "@/lib/i18n/metadata";
+import { getPrices } from "@/lib/content-db";
+import { localizeFaqs, priceRange, priceValues } from "@/lib/money";
+import { JsonLd, organizationId } from "@/components/JsonLd";
 
 export const generateMetadata = (): Promise<Metadata> =>
   localizedMetadata({
-    title: "Sri Lanka Private Tours",
+    title: "Sri Lanka Private Tours with a Driver-Guide",
     description:
-      "Bespoke tailor-made private tours of Sri Lanka with personal driver-guides. Krishan Tours Sri Lanka designs custom itineraries across ancient kingdoms, tea hills, wildlife safaris, and secluded coasts.",
+      "Tailor-made private tours of Sri Lanka with your own driver-guide: Sigiriya, Kandy, tea country, Ella train, Yala safari and the south coast, planned around you.",
     path: "/sri-lanka-private-tours",
     image: "/images/sigiriya-panorama.webp",
   });
@@ -50,6 +53,9 @@ const privateTourFaqs = [
 
 export default async function PrivateToursPage() {
   const { t, locale } = await getI18n();
+  const prices = getPrices();
+  const pv = priceValues(prices);
+  const faqs = localizeFaqs(privateTourFaqs, t, pv);
   const prefix = locale === "en" ? "" : `/${locale}`;
 
   const schema = {
@@ -60,20 +66,7 @@ export default async function PrivateToursPage() {
         name: "Sri Lanka Private Tours & Custom Itineraries",
         description:
           "Tailor-made private tours throughout Sri Lanka planned and guided by local Panadura operator Krishan Tours Sri Lanka.",
-        provider: {
-          "@type": "TravelAgency",
-          name: "Krishan Tours Sri Lanka",
-          url: siteConfig.url,
-          telephone: siteConfig.phone,
-          address: {
-            "@type": "PostalAddress",
-            streetAddress: `${siteConfig.address.street}, ${siteConfig.address.locality}`,
-            addressLocality: siteConfig.address.city,
-            addressRegion: siteConfig.address.region,
-            postalCode: siteConfig.address.postalCode,
-            addressCountry: "LK",
-          },
-        },
+        provider: { "@id": organizationId },
         touristType: ["Couples", "Families", "Honeymooners", "Private Groups", "Solo Travelers"],
         itinerary: [
           { "@type": "TouristAttraction", name: "Sigiriya Lion Rock Fortress" },
@@ -87,7 +80,7 @@ export default async function PrivateToursPage() {
       },
       {
         "@type": "FAQPage",
-        mainEntity: privateTourFaqs.map((faq) => ({
+        mainEntity: faqs.map((faq) => ({
           "@type": "Question",
           name: faq.q,
           acceptedAnswer: {
@@ -103,7 +96,7 @@ export default async function PrivateToursPage() {
             "@type": "ListItem",
             position: 1,
             name: "Home",
-            item: siteConfig.url,
+            item: `${siteConfig.url}${prefix || "/"}`,
           },
           {
             "@type": "ListItem",
@@ -275,7 +268,7 @@ export default async function PrivateToursPage() {
                 <span className="eyebrow text-gold">{t("Option 01")}</span>
                 <h3 className="display mt-2 text-3xl">{t("Driver & Vehicle Only")}</h3>
                 <div className="mt-4 flex items-baseline gap-2">
-                  <span className="display text-4xl text-gold">$55 – $85</span>
+                  <span className="display text-4xl text-gold">{priceRange({ min: prices["driver.sedan"].min, max: prices["driver.van"].max ?? prices["driver.van"].min })}</span>
                   <span className="text-xs text-white/60">/ {t("day (total car)")}</span>
                 </div>
                 <p className="mt-4 text-xs leading-5 text-white/70">
@@ -302,7 +295,7 @@ export default async function PrivateToursPage() {
                 <span className="eyebrow text-gold">{t("Option 02")}</span>
                 <h3 className="display mt-2 text-3xl">{t("Boutique Private Tour")}</h3>
                 <div className="mt-4 flex items-baseline gap-2">
-                  <span className="display text-4xl text-gold">$120 – $170</span>
+                  <span className="display text-4xl text-gold">{priceRange(prices["privateTours.boutique"])}</span>
                   <span className="text-xs text-white/60">/ {t("person / day")}</span>
                 </div>
                 <p className="mt-4 text-xs leading-5 text-white/70">
@@ -326,7 +319,7 @@ export default async function PrivateToursPage() {
                 <span className="eyebrow text-gold">{t("Option 03")}</span>
                 <h3 className="display mt-2 text-3xl">{t("Luxury Heritage Tour")}</h3>
                 <div className="mt-4 flex items-baseline gap-2">
-                  <span className="display text-4xl text-gold">$220 – $350+</span>
+                  <span className="display text-4xl text-gold">{priceRange(prices["privateTours.luxury"])}</span>
                   <span className="text-xs text-white/60">/ {t("person / day")}</span>
                 </div>
                 <p className="mt-4 text-xs leading-5 text-white/70">
@@ -436,14 +429,11 @@ export default async function PrivateToursPage() {
               <MessageCircle size={16} /> {t("Chat on WhatsApp")}
             </a>
           </div>
-          <FAQ items={privateTourFaqs} />
+          <FAQ items={faqs} />
         </div>
       </section>
 
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-      />
+      <JsonLd data={schema} />
     </>
   );
 }

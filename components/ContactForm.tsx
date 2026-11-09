@@ -8,7 +8,7 @@ import Link from "@/components/LocalizedLink";
 type State = "idle" | "sending" | "sent" | "error";
 
 export function ContactForm() {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const [state, setState] = useState<State>("idle");
   const [message, setMessage] = useState("");
 
@@ -23,7 +23,7 @@ export function ContactForm() {
       const response = await fetch("/api/inquiries", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "contact", ...payload }),
+        body: JSON.stringify({ type: "contact", ...payload, language: locale, page: window.location.pathname }),
       });
       const result = await response.json();
       if (!response.ok || !result.ok)

@@ -5,7 +5,9 @@ import Link from "@/components/LocalizedLink";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { stories, getStory } from "@/data/stories";
 import { getI18n } from "@/lib/i18n/server";
-import { localizedMetadata } from "@/lib/i18n/metadata";
+import { absoluteUrl, localizedMetadata } from "@/lib/i18n/metadata";
+import { JsonLd, breadcrumbSchema, organizationId } from "@/components/JsonLd";
+import { siteConfig } from "@/lib/site";
 
 export function generateStaticParams() {
   return stories.map(({ slug }) => ({ slug }));
@@ -18,20 +20,35 @@ export async function generateMetadata({
   const { slug } = await params;
   const s = getStory(slug);
   if (!s) return {};
-  const metadata=await localizedMetadata({title:s.title,description:s.excerpt,path:`/stories/${s.slug}`,image:s.image});
-  return {...metadata,openGraph:{...metadata.openGraph,type:"article"}};
+  const {t}=await getI18n();
+  return localizedMetadata({title:s.title,description:`${t(s.excerpt)} ${t(s.paragraphs[0])}`,path:`/stories/${s.slug}`,image:s.image,type:"article"});
 }
 export default async function StoryPage({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  const { t } = await getI18n();
+  const { t, locale } = await getI18n();
   const { slug } = await params;
   const story = getStory(slug);
   if (!story) notFound();
   const index = stories.findIndex((s) => s.slug === slug);
   const next = stories[(index + 1) % stories.length];
+  const url = absoluteUrl(`/stories/${story.slug}`, locale);
+  const articleSchema = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: t(story.title),
+    description: t(story.excerpt),
+    image: `${siteConfig.url}${story.image.replace(/\.webp$/, ".jpg")}`,
+    url,
+    mainEntityOfPage: url,
+    inLanguage: locale,
+    articleSection: t(story.category),
+    author: { "@type": "Person", name: "Krishan", worksFor: { "@id": organizationId } },
+    publisher: { "@id": organizationId },
+  };
+  const breadcrumbs = breadcrumbSchema([[t("Stories"), "/stories"], [t(story.title), `/stories/${story.slug}`]], locale, t("Home"));
   return (
     <article>
       <header className="bg-jungle pb-16 pt-36 text-white md:pb-24 md:pt-48">
@@ -64,7 +81,7 @@ export default async function StoryPage({
         <aside>
           <p className="eyebrow text-cinnamon">{t("From the road")}</p>
           <p className="mt-4 text-xs leading-5 text-black/45">
-            {t("Observations from KrishanTours.")}
+            {t("Observations from Krishan Tours Sri Lanka.")}
             <br />
             Sri Lanka.
           </p>
@@ -78,6 +95,30 @@ export default async function StoryPage({
               {t(p)}
             </p>
           ))}
+          {story.sections?.map((section) => (
+            <section key={section.heading} className="mt-14">
+              <h2 className="display text-4xl leading-[1.05] md:text-5xl">{t(section.heading)}</h2>
+              {section.paragraphs.map((p) => (
+                <p key={p} className="mt-6 text-base leading-8 text-black/65">
+                  {t(p)}
+                </p>
+              ))}
+            </section>
+          ))}
+          {story.related?.length ? (
+            <nav aria-label={t("Plan this into your trip")} className="mt-16 border-t border-black/15 pt-8">
+              <p className="eyebrow text-cinnamon">{t("Plan this into your trip")}</p>
+              <ul className="mt-5 grid gap-3">
+                {story.related.map((link) => (
+                  <li key={link.href}>
+                    <Link href={link.href} className="link-arrow">
+                      {t(link.label)} <ArrowRight size={14} />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          ) : null}
         </div>
       </div>
       <Link
@@ -94,6 +135,7 @@ export default async function StoryPage({
           <ArrowRight size={28} />
         </div>
       </Link>
+      <JsonLd data={[articleSchema, breadcrumbs]} />
     </article>
   );
 }

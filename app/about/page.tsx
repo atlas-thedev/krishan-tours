@@ -17,7 +17,7 @@ import { getI18n } from "@/lib/i18n/server";
 import { localizedMetadata } from "@/lib/i18n/metadata";
 
 export const generateMetadata = (): Promise<Metadata> =>
-  localizedMetadata({ title: "About KrishanTours", description: "Meet the local thinking behind KrishanTours: flexible private travel, trusted drivers and thoughtful support throughout Sri Lanka.", path: "/about" });
+  localizedMetadata({ title: "About Krishan, Your Local Driver-Guide", description: "Meet Krishan, the Panadura-based licensed driver-guide behind Krishan Tours Sri Lanka: flexible private travel, honest advice and on-island support.", path: "/about" });
 const values = [
   {
     icon: <Map />,
