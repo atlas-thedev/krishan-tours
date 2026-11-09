@@ -1,18 +1,19 @@
 "use client";
 import { useMemo } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { tours, tourStyles } from "@/data/tours";
+import { tourStyles } from "@/data/tours";
+import type { ListedTour } from "@/lib/content-db";
 import { TourCard } from "./TourCard";
 import { useI18n } from "./I18nProvider";
 
-export function TourFilters() {
+export function TourFilters({ tours }: { tours: ListedTour[] }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { t } = useI18n();
   const requested = searchParams.get("style") || "All";
   const active = tourStyles.includes(requested) ? requested : "All";
-  const filtered = useMemo(() => active === "All" ? tours : tours.filter((tour) => tour.styles.includes(active)), [active]);
+  const filtered = useMemo(() => active === "All" ? tours : tours.filter((tour) => tour.styles.includes(active)), [active, tours]);
   function select(style: string) {
     const params = new URLSearchParams(searchParams.toString());
     if (style === "All") params.delete("style"); else params.set("style", style);

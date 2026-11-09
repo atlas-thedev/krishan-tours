@@ -10,7 +10,7 @@ export function WhatsAppCTA() {
   const pathname = usePathname();
   const { t } = useI18n();
   const barePath = stripLocale(pathname);
-  if (barePath === "/plan-your-trip" || barePath.startsWith("/admin")) return null;
+  if (barePath === "/plan-your-trip" || barePath.startsWith("/admin") || barePath === "/pay-for-booking" || barePath.startsWith("/payments/")) return null;
   return (
     <>
       <a href={whatsappUrl()} target="_blank" rel="noreferrer" aria-label={t("Ask KrishanTours on WhatsApp")} style={{ color: "#fff" }} className="fixed bottom-6 right-6 z-40 hidden h-13 w-13 items-center justify-center rounded-full bg-jungle shadow-xl transition-transform hover:-translate-y-1 md:flex"><MessageCircle size={21} color="#fff"/></a>

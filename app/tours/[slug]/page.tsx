@@ -11,6 +11,7 @@ import {
   X,
 } from "lucide-react";
 import { tours, getTour } from "@/data/tours";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { PageHero } from "@/components/PageHero";
 import { TourTimeline } from "@/components/TourTimeline";
 import { Gallery } from "@/components/Gallery";
@@ -19,6 +20,9 @@ import { commonFaqs } from "@/data/faqs";
 import { SectionHeading } from "@/components/SectionHeading";
 import { TourCard } from "@/components/TourCard";
 import { siteConfig } from "@/lib/site";
+import { JsonLd, breadcrumbSchema, organizationId } from "@/components/JsonLd";
+import { getTripSettings } from "@/lib/content-db";
+import { money } from "@/lib/money";
 import { getI18n } from "@/lib/i18n/server";
 import { localizedMetadata } from "@/lib/i18n/metadata";
 
@@ -34,7 +38,7 @@ export async function generateMetadata({
   const tour = getTour(slug);
   if (!tour) return {};
   const {t}=await getI18n();
-  return localizedMetadata({title:`${t(tour.name)} — ${tour.duration} ${t("Day Private Tour")}`,description:t(tour.summary),path:`/tours/${tour.slug}`,image:tour.image});
+  return localizedMetadata({title:t("{name}: {days}-Day Sri Lanka Tour",{name:t(tour.name),days:tour.duration}),description:`${t(tour.summary)} ${t(tour.intro)}`,path:`/tours/${tour.slug}`,image:tour.image});
 }
 
 export default async function TourDetailPage({
@@ -46,6 +50,7 @@ export default async function TourDetailPage({
   const { slug } = await params;
   const tour = getTour(slug);
   if (!tour) notFound();
+  const fromPrice = getTripSettings()[tour.slug]?.fromPrice;
   const similar = tours
     .filter(
       (t) =>
@@ -64,7 +69,12 @@ export default async function TourDetailPage({
       name: `${t(d.place)}: ${t(d.title)}`,
     })),
     url: `${siteConfig.url}${prefix}/tours/${tour.slug}`,
+    image: `${siteConfig.url}${tour.image.replace(/\.webp$/, ".jpg")}`,
+    provider: { "@id": organizationId },
+    ...(fromPrice ? { offers: { "@type": "Offer", price: fromPrice, priceCurrency: "USD", availability: "https://schema.org/InStock" } } : {}),
+    inLanguage: locale,
   };
+  const breadcrumbs = breadcrumbSchema([[t("Tours"), "/tours"], [t(tour.name), `/tours/${tour.slug}`]], locale, t("Home"));
   return (
     <>
       <PageHero
@@ -74,6 +84,7 @@ export default async function TourDetailPage({
         image={tour.image}
         tall
       />
+      <Breadcrumbs parent={{ label: "Tours", href: "/tours" }} current={{ label: tour.name, href: `/tours/${tour.slug}` }}/>
       <div className="sticky top-[76px] z-30 border-y border-black/10 bg-paper/95 backdrop-blur-md lg:top-[88px]">
         <div className="shell flex min-h-16 items-center justify-between gap-4">
           <div className="hidden items-center gap-6 text-xs text-black/60 sm:flex">
@@ -85,9 +96,10 @@ export default async function TourDetailPage({
               <MapPin size={15} />
               {tour.route.length} {t("stops")}
             </span>
+            {fromPrice ? <span className="font-bold text-jungle">{t("From {price} / person", { price: money(fromPrice) })}</span> : null}
           </div>
           <p className="truncate text-xs sm:hidden">
-            {tour.duration} {t("days")} · {t("Private journey")}
+            {tour.duration} {t("days")} · {fromPrice ? t("From {price} / person", { price: money(fromPrice) }) : t("Private journey")}
           </p>
           <Link
             href={`/plan-your-trip?tour=${tour.slug}`}
@@ -238,10 +250,7 @@ export default async function TourDetailPage({
           </div>
         </div>
       </section>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-      />
+      <JsonLd data={[schema, breadcrumbs]} />
     </>
   );
 }

@@ -9,7 +9,7 @@ export const analyticsConsentStorageKey = "krishantours-analytics-consent";
 export function CookieConsent() {
   const { t } = useI18n();
   const [visible, setVisible] = useState(false);
-  useEffect(() => { queueMicrotask(() => setVisible(localStorage.getItem(analyticsConsentStorageKey) === null)); }, []);
+  useEffect(() => { queueMicrotask(() => setVisible(!window.location.pathname.startsWith("/admin") && localStorage.getItem(analyticsConsentStorageKey) === null)); }, []);
   function choose(value: "granted" | "denied") {
     localStorage.setItem(analyticsConsentStorageKey, value);
     window.dispatchEvent(new CustomEvent("krishantours-consent", { detail: value }));

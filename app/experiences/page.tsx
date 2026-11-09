@@ -10,9 +10,9 @@ import { localizedMetadata } from "@/lib/i18n/metadata";
 
 export const generateMetadata = (): Promise<Metadata> =>
   localizedMetadata({
-    title: "Sri Lanka Experiences",
+    title: "Things to Do in Sri Lanka: Experiences",
     description:
-      "Explore Sri Lanka through wildlife, food, trains, culture, beaches, adventure, wellness and real local life.",
+      "Things to do in Sri Lanka: wildlife safaris, beaches, the Ella train, ancient cities, food, adventure, wellness and local life, arranged privately.",
     path: "/experiences",
   });
 export default async function ExperiencesPage() {

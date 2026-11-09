@@ -3,9 +3,11 @@ import Image from "next/image";
 import Link from "@/components/LocalizedLink";
 import { ArrowRight, MapPin } from "lucide-react";
 import type { Tour } from "@/data/tours";
+
+const usd = (value: number) => `$${Math.round(value).toLocaleString("en-US")}`;
 import { useI18n } from "./I18nProvider";
 
-export function TourCard({ tour, index = 0 }: { tour: Tour; index?: number }) {
+export function TourCard({ tour, index = 0 }: { tour: Tour & { fromPrice?: number; pinned?: boolean }; index?: number }) {
   const { t } = useI18n();
   return (
     <article className="group grid gap-0 border-t border-black/15 py-7 md:grid-cols-[5rem_1fr_1.15fr] md:gap-7">
@@ -29,7 +31,7 @@ export function TourCard({ tour, index = 0 }: { tour: Tour; index?: number }) {
             {t("View journey")} <ArrowRight size={15} />
           </Link>
           <span className="text-[.68rem] uppercase tracking-[.08em] text-black/65">
-            {t("Request quote")}
+            {tour.fromPrice ? t("From {price} / person", { price: usd(tour.fromPrice) }) : t("Request quote")}
           </span>
         </div>
       </div>

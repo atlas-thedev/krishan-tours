@@ -5,11 +5,13 @@ import Link from "@/components/LocalizedLink";
 import { ArrowRight, CalendarDays, Clock, Lightbulb } from "lucide-react";
 import { destinations, getDestination } from "@/data/destinations";
 import { tours } from "@/data/tours";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { PageHero } from "@/components/PageHero";
 import { Gallery } from "@/components/Gallery";
 import { TourCard } from "@/components/TourCard";
 import { SectionHeading } from "@/components/SectionHeading";
 import { siteConfig } from "@/lib/site";
+import { JsonLd, breadcrumbSchema } from "@/components/JsonLd";
 import { getI18n } from "@/lib/i18n/server";
 import { localizedMetadata } from "@/lib/i18n/metadata";
 
@@ -25,7 +27,7 @@ export async function generateMetadata({
   const d = getDestination(slug);
   if (!d) return {};
   const {t}=await getI18n();
-  return localizedMetadata({title:`${t(d.name)}, ${t("Sri Lanka Travel Guide")}`,description:t(d.description),path:`/destinations/${d.slug}`,image:d.image});
+  return localizedMetadata({title:t("{place}, Sri Lanka: Things to Do & Tips",{place:t(d.name)}),description:`${t(d.description)} ${t("Best time: {time}. Stay {stay}.",{time:t(d.bestTime),stay:t(d.stay)})}`,path:`/destinations/${d.slug}`,image:d.image});
 }
 
 export default async function DestinationPage({
@@ -72,7 +74,12 @@ export default async function DestinationPage({
     description: t(d.description),
     touristType: t(d.category),
     url: `${siteConfig.url}${prefix}/destinations/${d.slug}`,
+    image: `${siteConfig.url}${d.image.replace(/\.webp$/, ".jpg")}`,
+    geo: { "@type": "GeoCoordinates", latitude: d.coordinates[0], longitude: d.coordinates[1] },
+    containedInPlace: { "@type": "Country", name: "Sri Lanka" },
+    includesAttraction: d.things.map((thing) => ({ "@type": "TouristAttraction", name: t(thing) })),
   };
+  const breadcrumbs = breadcrumbSchema([[t("Destinations"), "/destinations"], [t(d.name), `/destinations/${d.slug}`]], locale, t("Home"));
   return (
     <>
       <PageHero
@@ -82,6 +89,7 @@ export default async function DestinationPage({
         image={d.image}
         tall
       />
+      <Breadcrumbs parent={{ label: "Destinations", href: "/destinations" }} current={{ label: d.name, href: `/destinations/${d.slug}` }}/>
       <section id="content" className="py-24 md:py-36">
         <div className="shell grid gap-12 lg:grid-cols-[.75fr_1.25fr] lg:gap-24">
           <div>
@@ -210,10 +218,7 @@ export default async function DestinationPage({
           </div>
         </section>
       )}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-      />
+      <JsonLd data={[schema, breadcrumbs]} />
     </>
   );
 }

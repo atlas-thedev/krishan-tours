@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "qa:i18n": "node scripts/i18n-qa.mjs"
+    "qa:i18n": "node scripts/i18n-qa.mjs",
+    "qa:seo": "node scripts/seo-qa.mjs"
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.1.0",

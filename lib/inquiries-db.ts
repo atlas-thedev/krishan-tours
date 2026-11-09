@@ -3,6 +3,7 @@ import path from "node:path";
 import Database from "better-sqlite3";
 
 export type InquiryStatus = "new" | "contacted" | "confirmed" | "archived";
+export type NotificationStatus = "pending" | "sent" | "failed" | "unconfigured";
 
 export type InquiryRecord = {
   id: string;
@@ -25,6 +26,11 @@ export type InquiryRecord = {
   country: string;
   ip: string;
   adminNote: string;
+  notificationStatus?: NotificationStatus;
+  /** Site language the traveller used (en, de, fr, ru…). */
+  language: string;
+  /** Page the form was sent from. */
+  page: string;
 };
 
 export type NewInquiry = Omit<InquiryRecord, "updatedAt" | "status" | "adminNote">;
@@ -34,7 +40,7 @@ const databasePath = process.env.INQUIRY_DB_PATH || path.join(dataDirectory, "in
 
 let database: Database.Database | undefined;
 
-function getDatabase() {
+export function getDatabase() {
   if (database) return database;
   mkdirSync(path.dirname(databasePath), { recursive: true, mode: 0o700 });
   database = new Database(databasePath);
@@ -64,8 +70,27 @@ function getDatabase() {
       ip TEXT NOT NULL DEFAULT '',
       admin_note TEXT NOT NULL DEFAULT ''
     );
+    CREATE TABLE IF NOT EXISTS inquiry_notifications (
+      inquiry_id TEXT PRIMARY KEY REFERENCES inquiries(id) ON DELETE CASCADE,
+      status TEXT NOT NULL CHECK(status IN ('pending', 'sent', 'failed', 'unconfigured')),
+      updated_at TEXT NOT NULL
+    );
     CREATE INDEX IF NOT EXISTS inquiries_received_at ON inquiries(received_at DESC);
     CREATE INDEX IF NOT EXISTS inquiries_status ON inquiries(status);
+    CREATE TABLE IF NOT EXISTS prices (
+      key TEXT PRIMARY KEY,
+      min REAL NOT NULL,
+      max REAL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS trip_settings (
+      slug TEXT PRIMARY KEY,
+      pinned INTEGER NOT NULL DEFAULT 0,
+      sort_order INTEGER NOT NULL DEFAULT 100,
+      from_price REAL,
+      hidden INTEGER NOT NULL DEFAULT 0,
+      updated_at TEXT NOT NULL
+    );
     CREATE TABLE IF NOT EXISTS admin_credentials (
       username TEXT PRIMARY KEY,
       password_hash TEXT NOT NULL,
@@ -78,6 +103,10 @@ function getDatabase() {
     .run(new Date(Date.now() - 90 * 24 * 60 * 60 * 1_000).toISOString());
   database.prepare("DELETE FROM inquiries WHERE received_at < ? AND status IN ('new', 'contacted', 'archived')")
     .run(new Date(Date.now() - 2 * 365 * 24 * 60 * 60 * 1_000).toISOString());
+  // Lightweight migrations for columns added after launch.
+  const columns = new Set((database.prepare("PRAGMA table_info(inquiries)").all() as { name: string }[]).map((c) => c.name));
+  if (!columns.has("language")) database.exec("ALTER TABLE inquiries ADD COLUMN language TEXT NOT NULL DEFAULT ''");
+  if (!columns.has("page")) database.exec("ALTER TABLE inquiries ADD COLUMN page TEXT NOT NULL DEFAULT ''");
   return database;
 }
 
@@ -102,6 +131,9 @@ type InquiryRow = {
   country: string;
   ip: string;
   admin_note: string;
+  language?: string;
+  page?: string;
+  notification_status?: NotificationStatus | null;
 };
 
 function hydrate(row: InquiryRow): InquiryRecord {
@@ -128,31 +160,54 @@ function hydrate(row: InquiryRow): InquiryRecord {
     country: row.country,
     ip: row.ip,
     adminNote: row.admin_note,
+    notificationStatus: row.notification_status || undefined,
+    language: row.language || "",
+    page: row.page || "",
   };
 }
 
 export function saveInquiry(inquiry: NewInquiry) {
   const db = getDatabase();
-  db.prepare(`
-    INSERT INTO inquiries (
-      id, received_at, updated_at, type, status, name, email, phone, month,
-      message, timing, duration, traveller_group, interests, pace, stay,
-      budget, country, ip, admin_note
-    ) VALUES (?, ?, ?, ?, 'new', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '')
-  `).run(
-    inquiry.id, inquiry.receivedAt, inquiry.receivedAt, inquiry.type,
-    inquiry.name, inquiry.email, inquiry.phone, inquiry.month, inquiry.message,
-    inquiry.timing, inquiry.duration, inquiry.group, JSON.stringify(inquiry.interests),
-    inquiry.pace, inquiry.stay, inquiry.budget, inquiry.country, inquiry.ip,
-  );
+  db.transaction(() => {
+    db.prepare(`
+      INSERT INTO inquiries (
+        id, received_at, updated_at, type, status, name, email, phone, month,
+        message, timing, duration, traveller_group, interests, pace, stay,
+        budget, country, ip, admin_note, language, page
+      ) VALUES (?, ?, ?, ?, 'new', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '', ?, ?)
+    `).run(
+      inquiry.id, inquiry.receivedAt, inquiry.receivedAt, inquiry.type,
+      inquiry.name, inquiry.email, inquiry.phone, inquiry.month, inquiry.message,
+      inquiry.timing, inquiry.duration, inquiry.group, JSON.stringify(inquiry.interests),
+      inquiry.pace, inquiry.stay, inquiry.budget, inquiry.country, inquiry.ip, inquiry.language, inquiry.page,
+    );
+    db.prepare("INSERT INTO inquiry_notifications (inquiry_id, status, updated_at) VALUES (?, 'pending', ?)").run(inquiry.id, inquiry.receivedAt);
+  })();
 }
 
-export function listInquiries(status?: InquiryStatus) {
+export function listInquiries(status?: InquiryStatus, search = "") {
   const db = getDatabase();
-  const rows = status
-    ? db.prepare("SELECT * FROM inquiries WHERE status = ? ORDER BY received_at DESC").all(status)
-    : db.prepare("SELECT * FROM inquiries ORDER BY received_at DESC").all();
+  const where: string[] = [];
+  const params: string[] = [];
+  if (status) { where.push("status = ?"); params.push(status); }
+  const term = search.trim().slice(0, 80);
+  if (term) {
+    where.push("(name LIKE ? OR email LIKE ? OR phone LIKE ? OR message LIKE ? OR country LIKE ? OR admin_note LIKE ?)");
+    const like = `%${term.replace(/[%_]/g, "")}%`;
+    params.push(like, like, like, like, like, like);
+  }
+  const rows = db.prepare(`SELECT inquiries.*, (SELECT status FROM inquiry_notifications WHERE inquiry_id = inquiries.id) AS notification_status FROM inquiries ${where.length ? `WHERE ${where.join(" AND ")}` : ""} ORDER BY received_at DESC LIMIT 300`).all(...params);
   return (rows as unknown as InquiryRow[]).map(hydrate);
+}
+
+export function setInquiryNotificationStatus(id: string, status: Exclude<NotificationStatus, "pending">) {
+  getDatabase().prepare("UPDATE inquiry_notifications SET status = ?, updated_at = ? WHERE inquiry_id = ?")
+    .run(status, new Date().toISOString(), id);
+}
+
+export function unnotifiedInquiryCount() {
+  const row = getDatabase().prepare("SELECT COUNT(*) AS count FROM inquiry_notifications n JOIN inquiries i ON i.id = n.inquiry_id WHERE i.status = 'new' AND n.status <> 'sent'").get() as { count: number };
+  return row.count;
 }
 
 export function inquiryCounts() {

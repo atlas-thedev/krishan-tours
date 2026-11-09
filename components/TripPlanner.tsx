@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, LoaderCircle, Send } from "lucide-react";
 import { useI18n } from "./I18nProvider";
 import Link from "@/components/LocalizedLink";
+import { whatsappUrl } from "@/lib/site";
+import { trackInteraction } from "@/lib/analytics";
 
 type FormState = {
   timing: string;
@@ -59,17 +61,22 @@ const optionSets = {
   ],
   pace: ["Relaxed", "Balanced", "See everything"],
   stay: ["Comfort", "Boutique", "Luxury", "A mix"],
-  budget: [
-    "Under US$1,500 pp",
-    "US$1,500–2,500 pp",
-    "US$2,500–4,000 pp",
-    "US$4,000+ pp",
-    "Not sure yet",
-  ],
+  budget: [] as string[], // built from the admin-editable brackets, see budgetOptions()
 };
 
-export function TripPlanner() {
-  const { t } = useI18n();
+const usd = (value: number) => `US$${Math.round(value).toLocaleString("en-US")}`;
+
+export function TripPlanner({ budgetTiers = [1500, 2500, 4000], selectedTour }: { budgetTiers?: number[]; selectedTour?: { name: string; displayName: string } }) {
+  const { t, locale } = useI18n();
+  // Stored value stays English (for the inquiry email); the label is translated.
+  const [b1, b2, b3] = budgetTiers;
+  const budgetOptions = [
+    { value: `Under ${usd(b1)} pp`, label: t("Under {amount} per person", { amount: usd(b1) }) },
+    { value: `${usd(b1)}–${usd(b2)} pp`, label: t("{from} – {to} per person", { from: usd(b1), to: usd(b2) }) },
+    { value: `${usd(b2)}–${usd(b3)} pp`, label: t("{from} – {to} per person", { from: usd(b2), to: usd(b3) }) },
+    { value: `${usd(b3)}+ pp`, label: t("{amount}+ per person", { amount: usd(b3) }) },
+    { value: "Not sure yet", label: t("Not sure yet") },
+  ];
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<FormState>(initial);
   const [sent, setSent] = useState(false);
@@ -107,7 +114,7 @@ export function TripPlanner() {
   };
   const valid =
     step === 7
-      ? !!(form.name && form.email)
+      ? form.name.trim().length >= 2 && /^\S+@\S+\.\S+$/.test(form.email.trim())
       : key === "interests"
         ? form.interests.length > 0
         : !!form[key];
@@ -118,12 +125,13 @@ export function TripPlanner() {
       const response = await fetch("/api/inquiries", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "planner", ...form }),
+        body: JSON.stringify({ type: "planner", ...form, notes: [selectedTour ? `Tour requested: ${selectedTour.name}` : "", form.notes].filter(Boolean).join("\n"), language: locale, page: window.location.pathname }),
       });
       const result = await response.json();
       if (!response.ok || !result.ok)
         throw new Error(t(result.message || "Unable to send your request."));
-      sessionStorage.removeItem("krishan-trip");
+      trackInteraction("generate_lead", "trip_planner");
+      try { sessionStorage.removeItem("krishan-trip"); } catch {}
       setSent(true);
     } catch (problem) {
       setError(
@@ -162,6 +170,7 @@ export function TripPlanner() {
             {String(step + 1).padStart(2, "0")} / 08
           </span>
         </div>
+        {selectedTour && <p className="mt-3 text-sm text-ink/70">{t("Selected tour")}: <strong className="text-jungle">{selectedTour.displayName}</strong></p>}
         <div className="mt-4 h-1 bg-black/10">
           <div
             className="h-full bg-cinnamon transition-[width] duration-500"
@@ -208,8 +217,8 @@ export function TripPlanner() {
             <div
               className={`mt-9 grid gap-3 ${step === 3 ? "grid-cols-2 md:grid-cols-3" : "sm:grid-cols-2"}`}
             >
-              {(optionSets[key as keyof typeof optionSets] || []).map(
-                (value) => {
+              {(key === "budget" ? budgetOptions : (optionSets[key as keyof typeof optionSets] || []).map((value) => ({ value, label: t(value) }))).map(
+                ({ value, label }) => {
                   const chosen =
                     key === "interests"
                       ? form.interests.includes(value)
@@ -221,7 +230,7 @@ export function TripPlanner() {
                       onClick={() => select(value)}
                       className={`flex min-h-16 items-center justify-between border p-4 text-left text-sm transition-all ${chosen ? "border-jungle bg-jungle text-white" : "border-black/15 hover:border-jungle"}`}
                     >
-                      <span>{t(value)}</span>
+                      <span>{label}</span>
                       {chosen && <Check size={16} />}
                     </button>
                   );
@@ -235,6 +244,7 @@ export function TripPlanner() {
             <h2 className="display mt-3 text-[clamp(2.8rem,7vw,5rem)] leading-[.9]">
               {t("Where should we send your ideas?")}
             </h2>
+            <p className="mt-4 text-sm text-black/60">{t("Please enter your name and a valid email address.")}</p>
             <div className="mt-8 grid gap-5 sm:grid-cols-2">
               <Field
                 label={t("Name")}
@@ -282,13 +292,14 @@ export function TripPlanner() {
           </>
         )}
       </div>
+      {step < 7 && <div className="px-5 pb-4 md:px-10"><button type="button" onClick={() => setStep(7)} className="text-sm text-jungle underline underline-offset-4">{t("Skip to contact details")}</button></div>}
       {step === 7 && <p className="px-5 pb-4 text-xs leading-5 text-black/50 md:px-10">
         {t("By sending this form, you ask KrishanTours to use these details to respond to your inquiry.")} {" "}
         <Link href="/privacy" className="underline">{t("Read our privacy policy")}</Link>.
       </p>}
       {error && (
         <p role="alert" className="px-5 pb-1 text-sm text-cinnamon md:px-9">
-          {error}
+          {error} {" "}<a href={whatsappUrl()} target="_blank" rel="noreferrer" className="underline">{t("Ask on WhatsApp")}</a>
         </p>
       )}
       <div className="flex items-center justify-between border-t border-black/10 p-5 md:px-9">

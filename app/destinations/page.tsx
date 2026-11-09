@@ -7,7 +7,7 @@ import { destinations } from "@/data/destinations";
 import { getI18n } from "@/lib/i18n/server";
 import { localizedMetadata } from "@/lib/i18n/metadata";
 
-export const generateMetadata=():Promise<Metadata>=>localizedMetadata({title:"Places to Visit in Sri Lanka",description:"Explore Ella, Sigiriya, Kandy, Galle, Yala and more with grounded local advice on when to go and how long to stay.",path:"/destinations"});
+export const generateMetadata=():Promise<Metadata>=>localizedMetadata({title:"Best Places to Visit in Sri Lanka",description:"Local guide to the best places to visit in Sri Lanka: Sigiriya, Kandy, Ella, Nuwara Eliya, Galle, Mirissa, Yala and more, with when to go and how long to stay.",path:"/destinations"});
 
 export default async function DestinationsPage() {
   const {t}=await getI18n();

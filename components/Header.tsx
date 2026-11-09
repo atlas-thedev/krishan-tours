@@ -68,11 +68,11 @@ export function Header() {
         className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${dark ? "bg-ivory/95 text-ink shadow-[0_1px_0_rgba(0,0,0,.1)] backdrop-blur-md" : "text-white"}`}
         onMouseLeave={() => setOpenMenu(null)}
       >
-        <div className="shell flex h-[76px] items-center justify-between lg:h-[88px]">
+        <div className="shell flex h-[76px] items-center justify-between lg:h-[96px]">
           <Logo light={!dark} />
           <nav
             aria-label={t("Primary navigation")}
-            className="hidden items-center gap-7 xl:flex"
+            className="hidden items-center gap-4 xl:flex"
           >
             {nav.map((item) => (
               <div
@@ -86,7 +86,7 @@ export function Header() {
               >
                 <Link
                   href={item.href}
-                  className="flex min-h-11 items-center gap-1 text-[.69rem] font-bold uppercase tracking-[.1em] transition-opacity hover:opacity-60"
+                  className="flex min-h-11 items-center gap-1 text-sm font-bold uppercase tracking-[.1em] transition-opacity hover:opacity-60"
                 >
                   {t(item.label)}
                   {item.menu && <ChevronDown size={13} aria-hidden="true" />}
@@ -98,8 +98,8 @@ export function Header() {
             <LanguageSwitcher light={!dark} />
             <Link
               href="/plan-your-trip"
-              style={dark ? { color: "#fff" } : undefined}
-              className={`hidden min-h-10 sm:min-h-11 items-center border px-4 text-[.68rem] font-bold uppercase tracking-[.12em] transition-colors lg:flex ${
+              data-solid={Boolean(dark)}
+              className={`header-journey hidden min-h-12 items-center border px-4 text-sm font-bold uppercase tracking-[.12em] transition-colors min-[1440px]:flex ${
                 dark
                   ? "border-jungle bg-jungle hover:border-cinnamon hover:bg-cinnamon"
                   : "border-white/60 hover:bg-white hover:text-jungle"
