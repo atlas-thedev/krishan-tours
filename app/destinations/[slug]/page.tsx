@@ -5,6 +5,7 @@ import Link from "@/components/LocalizedLink";
 import { ArrowRight, CalendarDays, Clock, Lightbulb } from "lucide-react";
 import { destinations, getDestination } from "@/data/destinations";
 import { tours } from "@/data/tours";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { PageHero } from "@/components/PageHero";
 import { Gallery } from "@/components/Gallery";
 import { TourCard } from "@/components/TourCard";
@@ -88,6 +89,7 @@ export default async function DestinationPage({
         image={d.image}
         tall
       />
+      <Breadcrumbs parent={{ label: "Destinations", href: "/destinations" }} current={{ label: d.name, href: `/destinations/${d.slug}` }}/>
       <section id="content" className="py-24 md:py-36">
         <div className="shell grid gap-12 lg:grid-cols-[.75fr_1.25fr] lg:gap-24">
           <div>

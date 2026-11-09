@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { BadgeDollarSign, Calculator, CreditCard, ExternalLink, Inbox, Map, Settings } from "lucide-react";
+import { BadgeDollarSign, Calculator, CreditCard, ExternalLink, FileText, Inbox, Map, Settings } from "lucide-react";
 import { LogoutButton } from "@/components/admin/LogoutButton";
 
 const tabs = [
+  { key: "invoices", href: "/admin/invoices", label: "Invoices", icon: FileText },
   { key: "inquiries", href: "/admin", label: "Inquiries", icon: Inbox },
   { key: "prices", href: "/admin/prices", label: "Prices", icon: BadgeDollarSign },
   { key: "calculator", href: "/admin/calculator", label: "Calculator", icon: Calculator },
@@ -34,7 +35,7 @@ export function AdminShell({ active, title, subtitle, badge, children }: { activ
       <div className="mt-6 md:mt-8">{children}</div>
     </div>
 
-    <nav aria-label="Admin sections" className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-6 border-t border-ink/10 bg-paper/95 pb-[env(safe-area-inset-bottom)] backdrop-blur xl:hidden">
+    <nav aria-label="Admin sections" className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-7 border-t border-ink/10 bg-paper/95 pb-[env(safe-area-inset-bottom)] backdrop-blur xl:hidden">
       {tabs.map(({ key, href, label, icon: Icon }) => <Link key={key} href={href} aria-current={active === key ? "page" : undefined} className={`relative flex min-h-16 flex-col items-center justify-center gap-1 text-[.58rem] font-bold uppercase tracking-[.03em] ${active === key ? "!text-jungle" : "!text-ink/45"}`}>
         {active === key && <span className="absolute top-0 h-0.5 w-10 rounded-full bg-cinnamon"/>}
         <Icon size={20}/>{label}

@@ -28,6 +28,7 @@ export function InquiryCard({ inquiry, open = false }: { inquiry: InquiryRecord;
           <span className="truncate text-base font-semibold text-ink md:text-lg">{inquiry.name}</span>
           <span className={`rounded-full px-2 py-0.5 text-[.58rem] font-bold uppercase tracking-[.08em] ${statusStyle[inquiry.status]}`}>{inquiry.status}</span>
           {inquiry.language && inquiry.language !== "en" && <span title={localeNames[inquiry.language as Locale] || inquiry.language} className="rounded-full bg-gold/25 px-2 py-0.5 text-[.58rem] font-bold uppercase tracking-[.08em] text-jungle">{localeNames[inquiry.language as Locale] || inquiry.language}</span>}
+          {inquiry.notificationStatus && inquiry.notificationStatus !== "sent" && <span className="rounded-full bg-cinnamon/15 px-2 py-0.5 text-[.58rem] font-bold uppercase tracking-[.08em] text-cinnamon">Email alert not confirmed</span>}
           {inquiry.type === "planner" && <span className="rounded-full border border-jungle/20 px-2 py-0.5 text-[.58rem] font-bold uppercase tracking-[.08em] text-jungle">Trip plan</span>}
         </span>
         <span className="mt-1 block truncate text-xs text-ink/50">{received} · {readable(inquiry.month || inquiry.timing || inquiry.duration)} · Ref {inquiry.id.slice(0, 6).toUpperCase()}</span>

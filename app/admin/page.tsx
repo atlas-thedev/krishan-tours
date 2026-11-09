@@ -5,7 +5,8 @@ import { Inbox, Search } from "lucide-react";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { InquiryCard } from "@/components/admin/InquiryCard";
 import { isAdmin } from "@/lib/admin-auth";
-import { inquiryCounts, InquiryStatus, listInquiries } from "@/lib/inquiries-db";
+import { mailConfigured } from "@/lib/mailer";
+import { inquiryCounts, InquiryStatus, listInquiries, unnotifiedInquiryCount } from "@/lib/inquiries-db";
 
 export const metadata: Metadata = { title: "Inquiries · Admin", robots: { index: false, follow: false } };
 export const dynamic = "force-dynamic";
@@ -19,6 +20,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   const q = (params.q || "").slice(0, 80);
   const inquiries = listInquiries(status, q);
   const counts = inquiryCounts();
+  const unnotified = unnotifiedInquiryCount();
   const href = (next: string) => {
     const query = new URLSearchParams();
     if (next !== "all") query.set("status", next);
@@ -27,6 +29,8 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
   };
 
   return <AdminShell active="inquiries" title="Inquiries" subtitle="Trip requests from the website. Reply fast — WhatsApp within an hour wins most bookings." badge={counts.new}>
+    {(!mailConfigured() || (process.env.SENDGRID_API_KEY && !(process.env.MAIL_FROM || process.env.SMTP_FROM))) && <div role="status" className="mb-5 rounded-xl border border-cinnamon/30 bg-white p-4 text-sm leading-6 text-ink"><strong>Email alerts may not be configured.</strong> Inquiries can still appear here, but email requires working SendGrid or SMTP settings. Check your deployment and test delivery.</div>}
+    {unnotified > 0 && <div role="status" className="mb-5 rounded-xl border border-cinnamon/30 bg-white p-4 text-sm leading-6 text-ink"><strong>{unnotified} new {unnotified === 1 ? "inquiry has" : "inquiries have"} no confirmed email alert.</strong> They were saved here; check the marked inquiries and your email configuration.</div>}
     <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
       {([["New", counts.new, "text-cinnamon"], ["Contacted", counts.contacted, "text-jungle"], ["Confirmed", counts.confirmed, "text-tea"], ["Total", counts.all, "text-ink"]] as const).map(([label, value, color]) => <div key={label} className="rounded-2xl bg-white p-4 shadow-[0_6px_24px_rgba(23,56,43,.05)]"><p className="text-[.62rem] font-bold uppercase tracking-[.1em] text-ink/45">{label}</p><p className={`mt-1 text-3xl font-semibold tabular-nums ${color}`}>{value}</p></div>)}
     </div>

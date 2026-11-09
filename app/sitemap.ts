@@ -61,17 +61,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.6,
     })),
   ];
-  const lastModified = process.env.SITEMAP_LASTMOD ? new Date(process.env.SITEMAP_LASTMOD) : new Date(BUILD_TIME);
   return routes.flatMap((item) =>
     locales.map((locale) => ({
       url: absoluteUrl(item.route, locale),
-      lastModified,
       changeFrequency: item.changeFrequency,
       priority: item.priority,
       alternates: { languages: languageAlternates(item.route) },
     })),
   );
 }
-
-// Evaluated once when the sitemap module is built, so lastmod reflects the deploy, not every request.
-const BUILD_TIME = Date.now();

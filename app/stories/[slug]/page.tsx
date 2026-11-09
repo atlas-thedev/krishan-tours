@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Image from "next/image";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import Link from "@/components/LocalizedLink";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { stories, getStory } from "@/data/stories";
@@ -67,6 +68,7 @@ export default async function StoryPage({
           </p>
         </div>
       </header>
+      <Breadcrumbs parent={{ label: "Stories", href: "/stories" }} current={{ label: story.title, href: `/stories/${story.slug}` }}/>
       <div className="relative min-h-[55svh]">
         <Image
           src={story.image}

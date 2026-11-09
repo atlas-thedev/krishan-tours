@@ -3,6 +3,7 @@ import path from "node:path";
 import Database from "better-sqlite3";
 
 export type InquiryStatus = "new" | "contacted" | "confirmed" | "archived";
+export type NotificationStatus = "pending" | "sent" | "failed" | "unconfigured";
 
 export type InquiryRecord = {
   id: string;
@@ -25,6 +26,7 @@ export type InquiryRecord = {
   country: string;
   ip: string;
   adminNote: string;
+  notificationStatus?: NotificationStatus;
   /** Site language the traveller used (en, de, fr, ru…). */
   language: string;
   /** Page the form was sent from. */
@@ -67,6 +69,11 @@ export function getDatabase() {
       country TEXT NOT NULL DEFAULT '',
       ip TEXT NOT NULL DEFAULT '',
       admin_note TEXT NOT NULL DEFAULT ''
+    );
+    CREATE TABLE IF NOT EXISTS inquiry_notifications (
+      inquiry_id TEXT PRIMARY KEY REFERENCES inquiries(id) ON DELETE CASCADE,
+      status TEXT NOT NULL CHECK(status IN ('pending', 'sent', 'failed', 'unconfigured')),
+      updated_at TEXT NOT NULL
     );
     CREATE INDEX IF NOT EXISTS inquiries_received_at ON inquiries(received_at DESC);
     CREATE INDEX IF NOT EXISTS inquiries_status ON inquiries(status);
@@ -126,6 +133,7 @@ type InquiryRow = {
   admin_note: string;
   language?: string;
   page?: string;
+  notification_status?: NotificationStatus | null;
 };
 
 function hydrate(row: InquiryRow): InquiryRecord {
@@ -152,6 +160,7 @@ function hydrate(row: InquiryRow): InquiryRecord {
     country: row.country,
     ip: row.ip,
     adminNote: row.admin_note,
+    notificationStatus: row.notification_status || undefined,
     language: row.language || "",
     page: row.page || "",
   };
@@ -159,18 +168,21 @@ function hydrate(row: InquiryRow): InquiryRecord {
 
 export function saveInquiry(inquiry: NewInquiry) {
   const db = getDatabase();
-  db.prepare(`
-    INSERT INTO inquiries (
-      id, received_at, updated_at, type, status, name, email, phone, month,
-      message, timing, duration, traveller_group, interests, pace, stay,
-      budget, country, ip, admin_note, language, page
-    ) VALUES (?, ?, ?, ?, 'new', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '', ?, ?)
-  `).run(
-    inquiry.id, inquiry.receivedAt, inquiry.receivedAt, inquiry.type,
-    inquiry.name, inquiry.email, inquiry.phone, inquiry.month, inquiry.message,
-    inquiry.timing, inquiry.duration, inquiry.group, JSON.stringify(inquiry.interests),
-    inquiry.pace, inquiry.stay, inquiry.budget, inquiry.country, inquiry.ip, inquiry.language, inquiry.page,
-  );
+  db.transaction(() => {
+    db.prepare(`
+      INSERT INTO inquiries (
+        id, received_at, updated_at, type, status, name, email, phone, month,
+        message, timing, duration, traveller_group, interests, pace, stay,
+        budget, country, ip, admin_note, language, page
+      ) VALUES (?, ?, ?, ?, 'new', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '', ?, ?)
+    `).run(
+      inquiry.id, inquiry.receivedAt, inquiry.receivedAt, inquiry.type,
+      inquiry.name, inquiry.email, inquiry.phone, inquiry.month, inquiry.message,
+      inquiry.timing, inquiry.duration, inquiry.group, JSON.stringify(inquiry.interests),
+      inquiry.pace, inquiry.stay, inquiry.budget, inquiry.country, inquiry.ip, inquiry.language, inquiry.page,
+    );
+    db.prepare("INSERT INTO inquiry_notifications (inquiry_id, status, updated_at) VALUES (?, 'pending', ?)").run(inquiry.id, inquiry.receivedAt);
+  })();
 }
 
 export function listInquiries(status?: InquiryStatus, search = "") {
@@ -184,8 +196,18 @@ export function listInquiries(status?: InquiryStatus, search = "") {
     const like = `%${term.replace(/[%_]/g, "")}%`;
     params.push(like, like, like, like, like, like);
   }
-  const rows = db.prepare(`SELECT * FROM inquiries ${where.length ? `WHERE ${where.join(" AND ")}` : ""} ORDER BY received_at DESC LIMIT 300`).all(...params);
+  const rows = db.prepare(`SELECT inquiries.*, (SELECT status FROM inquiry_notifications WHERE inquiry_id = inquiries.id) AS notification_status FROM inquiries ${where.length ? `WHERE ${where.join(" AND ")}` : ""} ORDER BY received_at DESC LIMIT 300`).all(...params);
   return (rows as unknown as InquiryRow[]).map(hydrate);
+}
+
+export function setInquiryNotificationStatus(id: string, status: Exclude<NotificationStatus, "pending">) {
+  getDatabase().prepare("UPDATE inquiry_notifications SET status = ?, updated_at = ? WHERE inquiry_id = ?")
+    .run(status, new Date().toISOString(), id);
+}
+
+export function unnotifiedInquiryCount() {
+  const row = getDatabase().prepare("SELECT COUNT(*) AS count FROM inquiry_notifications n JOIN inquiries i ON i.id = n.inquiry_id WHERE i.status = 'new' AND n.status <> 'sent'").get() as { count: number };
+  return row.count;
 }
 
 export function inquiryCounts() {

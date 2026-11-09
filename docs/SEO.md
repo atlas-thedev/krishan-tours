@@ -1,7 +1,7 @@
 # SEO notes
 
 ## What is in place
-- Unique, length-checked titles (`%s | Krishan Tours`) and meta descriptions (≤160 chars, auto-clipped by `clip()` in `lib/i18n/metadata.ts`).
+- Unique, length-checked titles (`%s | Krishan Tours`) and meta descriptions (auto-clipped for concise snippets by `clip()` in `lib/i18n/metadata.ts`; Google may choose different snippets).
 - Canonical + hreflang for all 12 locales (en, ar, cs, fr, pl, de, es, it, nl, ru, zh, ja) **plus `x-default`**, identical in page `<head>` and `sitemap.xml`.
 - JSON-LD: `TravelAgency` + `WebSite` (site-wide, `@id` referenced by every page), `FAQPage`, `TouristTrip`, `TouristDestination`, `BlogPosting`, `BreadcrumbList`. Use `components/JsonLd.tsx` for new schema.
 - Every visible string on landing pages is translated. SEO-critical wording per language lives in `lib/i18n/seo-overrides.ts` and overrides the machine catalogs.
@@ -22,6 +22,6 @@
 
 ## Google Business Profile & TripAdvisor checklist
 - GBP: category "Tour operator" (primary) + "Travel agency"; add the Panadura service areas (Colombo, Negombo, Galle, Kandy…); upload 20+ real photos (vehicles, driver, guests); add every service with prices; post weekly updates; reply to every review.
-- Ask every guest for a Google review (WhatsApp the review link at drop-off) and a TripAdvisor review. Reviews count and recency are the strongest local ranking factors.
+- Ask every guest for a Google review (WhatsApp the review link at drop-off) and a TripAdvisor review. Genuine reviews can help travellers evaluate the business and may support local visibility.
 - Keep name, phone (+94 77 603 9102) and website identical on GBP, TripAdvisor, Facebook and the site footer.
 - TripAdvisor: claim the listing via Tripadvisor Management Center, add photos, tour description, and link the website.

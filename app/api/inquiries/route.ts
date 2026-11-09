@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { mailConfigured, sendMail } from "@/lib/mailer";
 import { NextRequest, NextResponse } from "next/server";
-import { saveInquiry } from "@/lib/inquiries-db";
+import { saveInquiry, setInquiryNotificationStatus } from "@/lib/inquiries-db";
 import { isLocale, localeNames } from "@/lib/i18n/config";
 import { clientIp, createRateLimiter, readJsonObject, RequestBodyError } from "@/lib/request-security";
 
@@ -79,7 +79,8 @@ export async function POST(request: NextRequest) {
   ].filter(([, value]) => value);
 
   let delivered = false;
-  if (mailConfigured()) {
+  const configured = mailConfigured();
+  if (configured) {
     try {
       await sendMail({
         to: destinationEmail,
@@ -92,6 +93,12 @@ export async function POST(request: NextRequest) {
     } catch (error) {
       console.error("Inquiry saved but email delivery failed", error);
     }
+  }
+
+  try {
+    setInquiryNotificationStatus(inquiry.id, delivered ? "sent" : configured ? "failed" : "unconfigured");
+  } catch (error) {
+    console.error("Inquiry saved but notification status could not be recorded", error);
   }
 
   return NextResponse.json({ ok: true, delivered, reference: inquiry.id }, { status: delivered ? 200 : 202 });

@@ -5,6 +5,7 @@ import Link from "@/components/LocalizedLink";
 import { ArrowRight, Compass, MapPin } from "lucide-react";
 import { experiences, getExperience } from "@/data/experiences";
 import { tours } from "@/data/tours";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { PageHero } from "@/components/PageHero";
 import { TourCard } from "@/components/TourCard";
 import { SectionHeading } from "@/components/SectionHeading";
@@ -58,6 +59,7 @@ export default async function ExperiencePage({
         image={e.image}
         tall
       />
+      <Breadcrumbs parent={{ label: "Experiences", href: "/experiences" }} current={{ label: e.name, href: `/experiences/${e.slug}` }}/>
       <section className="py-24 md:py-36">
         <div className="shell grid gap-12 lg:grid-cols-[1.15fr_.85fr] lg:gap-24">
           <div>

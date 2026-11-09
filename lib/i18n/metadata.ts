@@ -40,7 +40,9 @@ export function clip(text: string | undefined, max = 158) {
   const clean = text.replace(/\s+/g, " ").trim();
   if (clean.length <= max) return clean;
   const cut = clean.slice(0, max - 1);
-  return `${cut.slice(0, cut.lastIndexOf(" ")).replace(/[,;:–—-]$/, "")}…`;
+  const boundary = cut.lastIndexOf(" ");
+  const clipped = boundary > max / 2 ? cut.slice(0, boundary) : cut;
+  return `${clipped.replace(/[,;:–—-]$/, "")}…`;
 }
 
 export async function localizedMetadata({
@@ -79,8 +81,6 @@ export async function localizedMetadata({
   const ogImageObj = {
     url: resolvedImageUrl,
     secureUrl: resolvedImageUrl,
-    width: 1200,
-    height: 630,
     alt: translatedTitle,
     type: resolvedImageUrl.endsWith(".png") ? "image/png" : "image/jpeg",
   };

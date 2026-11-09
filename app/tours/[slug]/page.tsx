@@ -11,6 +11,7 @@ import {
   X,
 } from "lucide-react";
 import { tours, getTour } from "@/data/tours";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { PageHero } from "@/components/PageHero";
 import { TourTimeline } from "@/components/TourTimeline";
 import { Gallery } from "@/components/Gallery";
@@ -83,6 +84,7 @@ export default async function TourDetailPage({
         image={tour.image}
         tall
       />
+      <Breadcrumbs parent={{ label: "Tours", href: "/tours" }} current={{ label: tour.name, href: `/tours/${tour.slug}` }}/>
       <div className="sticky top-[76px] z-30 border-y border-black/10 bg-paper/95 backdrop-blur-md lg:top-[88px]">
         <div className="shell flex min-h-16 items-center justify-between gap-4">
           <div className="hidden items-center gap-6 text-xs text-black/60 sm:flex">

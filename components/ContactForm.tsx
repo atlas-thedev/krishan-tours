@@ -4,6 +4,8 @@ import { FormEvent, useState } from "react";
 import { Check, LoaderCircle, Send } from "lucide-react";
 import { useI18n } from "./I18nProvider";
 import Link from "@/components/LocalizedLink";
+import { whatsappUrl } from "@/lib/site";
+import { trackInteraction } from "@/lib/analytics";
 
 type State = "idle" | "sending" | "sent" | "error";
 
@@ -28,6 +30,7 @@ export function ContactForm() {
       const result = await response.json();
       if (!response.ok || !result.ok)
         throw new Error(t(result.message || "Unable to send inquiry."));
+      trackInteraction("generate_lead", "contact_form");
       setState("sent");
     } catch (error) {
       setState("error");
@@ -97,7 +100,7 @@ export function ContactForm() {
       </p>
       {state === "error" && (
         <p role="alert" className="mt-5 text-sm text-cinnamon">
-          {message}
+          {message} {" "}<a href={whatsappUrl()} target="_blank" rel="noreferrer" className="underline">{t("Ask on WhatsApp")}</a>
         </p>
       )}
       <button

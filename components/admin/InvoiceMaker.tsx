@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Plus, Printer, Trash2 } from "lucide-react";
 
 type Day = { date: string; route: string; details: string };
@@ -27,6 +27,12 @@ function formatDate(value: string) {
 
 export function InvoiceMaker() {
   const [invoice, setInvoice] = useState<Invoice>(initialInvoice);
+  const [mobileView, setMobileView] = useState<"edit" | "preview">("edit");
+  const controlsRef = useRef<HTMLDivElement>(null);
+  const switchView = (view: "edit" | "preview") => {
+    setMobileView(view);
+    controlsRef.current?.scrollIntoView({ block: "start" });
+  };
   const update = (key: keyof Omit<Invoice, "days">, value: string) => setInvoice((current) => ({ ...current, [key]: value }));
   const updateDay = (index: number, key: keyof Day, value: string) => setInvoice((current) => ({ ...current, days: current.days.map((day, i) => i === index ? { ...day, [key]: value } : day) }));
   const amount = Number(invoice.amount);
@@ -35,8 +41,12 @@ export function InvoiceMaker() {
   const field = (label: string, key: keyof Omit<Invoice, "days">, type = "text", placeholder = "") => <label className="invoice-field"><span>{label}</span><input type={type} value={invoice[key]} placeholder={placeholder} onChange={(event) => update(key, event.target.value)} {...(type === "number" ? { min: 0, step: "0.01" } : {})} /></label>;
 
   return <section className="admin-surface invoice-maker">
-    <div className="invoice-controls">
+    <div className={`invoice-controls invoice-mode-${mobileView}`} ref={controlsRef}>
       <header className="invoice-admin-header"><div><Link href="/admin" className="invoice-back">← Back to inquiry desk</Link><p className="invoice-eyebrow">Krishan Tours · Private</p><h1>Invoice maker</h1><p>Create a personalised tour invoice, then print it or save it as a PDF.</p></div><button type="button" className="invoice-print" onClick={() => window.print()}><Printer size={16}/> Print / Save PDF</button></header>
+      <div className="invoice-mobile-switch" role="group" aria-label="Invoice view">
+        <button type="button" aria-pressed={mobileView === "edit"} onClick={() => switchView("edit")}>Edit invoice</button>
+        <button type="button" aria-pressed={mobileView === "preview"} onClick={() => switchView("preview")}>Preview invoice</button>
+      </div>
       <div className="invoice-edit-layout">
         <div className="invoice-form">
           <p className="invoice-notice">Your changes stay on this page only. Print or save a PDF before leaving.</p>
@@ -47,7 +57,7 @@ export function InvoiceMaker() {
           </section>
           <section className="invoice-form-section"><h2>Summary &amp; payment</h2><div className="invoice-fields">{field("Package label", "packageLabel")}{field("Amount", "amount", "number", "0.00")}{field("Currency", "currency", "text", "USD")}<label className="invoice-field invoice-field-wide"><span>Tour summary (one point per line)</span><textarea rows={4} value={invoice.summary} placeholder={'Private tour in Sri Lanka.\nMileage included.'} onChange={(event) => update("summary", event.target.value)}/></label></div></section>
         </div>
-        <div className="invoice-preview-wrap"><div className="invoice-preview-heading"><div><p className="invoice-eyebrow">Live preview</p><p>Print on A4 with background graphics enabled.</p></div></div><div className="invoice-preview-scroll"><InvoicePreview invoice={invoice} formattedAmount={formattedAmount} summary={summary}/></div></div>
+        <div className="invoice-preview-wrap"><div className="invoice-preview-heading"><div><p className="invoice-eyebrow">Live preview</p><p>Print on A4 with background graphics enabled. The mobile preview adapts to your screen; the PDF keeps the A4 layout.</p></div></div><div className="invoice-preview-scroll"><InvoicePreview invoice={invoice} formattedAmount={formattedAmount} summary={summary}/></div></div>
       </div>
     </div>
   </section>;

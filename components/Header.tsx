@@ -7,7 +7,6 @@ import { Menu, X, ArrowUpRight, ChevronDown } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { usePathname } from "next/navigation";
 import { Logo } from "./Logo";
-import { PaymentNav } from "./PaymentNav";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useI18n } from "./I18nProvider";
 import { destinations } from "@/data/destinations";
@@ -108,7 +107,6 @@ export function Header() {
             >
               {t("Plan My Journey")}
             </Link>
-            <div className="hidden md:block"><PaymentNav /></div>
             <button
               type="button"
               onClick={() => setMobile(true)}
@@ -256,7 +254,6 @@ export function Header() {
                     <span className="text-[.6rem] text-gold">0{index + 1}</span>
                   </Link>
                 ))}
-                <PaymentNav mobile onNavigate={() => setMobile(false)} />
               </nav>
               <div className="relative hidden aspect-[4/5] overflow-hidden md:block">
                 <Image
