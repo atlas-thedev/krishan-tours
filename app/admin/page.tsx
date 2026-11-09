@@ -30,7 +30,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Promis
     <header className="bg-jungle text-white">
       <div className="shell flex items-start justify-between gap-5 pb-12 pt-8 md:items-end md:pb-16 md:pt-12">
         <div><p className="eyebrow text-gold">KrishanTours · Private</p><h1 className="display mt-3 text-5xl leading-none md:text-7xl">Inquiry desk</h1><p className="mt-3 max-w-md text-sm leading-6 text-white/60">Read new trip requests, follow up and keep each conversation moving.</p></div>
-        <LogoutButton />
+        <div className="flex flex-wrap items-center justify-end gap-3"><Link href="/admin/invoices" className="border border-gold px-4 py-3 text-xs font-bold uppercase tracking-wider text-gold hover:bg-gold hover:text-jungle">Invoice maker</Link><LogoutButton /></div>
       </div>
     </header>
     <div className="shell">
